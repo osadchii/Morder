@@ -16,21 +16,36 @@ export class CategoryService {
     return this.categoryModel.find({}).exec();
   }
 
+  async getById(id: string) {
+    return this.categoryModel.findById(id).exec();
+  }
+
+  async getByErpCode(erpCode: string) {
+    return this.categoryModel.findOne({
+      erpCode,
+    }).exec();
+  }
+
   async createOrUpdate(dto: CategoryDto) {
     if (dto.isDeleted === null) {
       dto.isDeleted = false;
     }
+    const { erpCode } = dto;
     const id = await this.categoryModel.findOne({
-      erpCode: dto.erpCode,
+      erpCode,
     }, { _id: 1 });
 
     if (!id) {
       return this.categoryModel.create(dto);
-    } else {
-      return this.categoryModel.findByIdAndUpdate(id, dto, {
-        new: true,
-        useFindAndModify: false,
-      });
     }
+
+    return this.categoryModel.findByIdAndUpdate(id, dto, {
+      new: true,
+      useFindAndModify: false,
+    });
+  }
+
+  async deleteById(id: string) {
+    return this.categoryModel.findByIdAndDelete(id).exec();
   }
 }
