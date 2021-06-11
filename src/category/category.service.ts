@@ -42,7 +42,7 @@ export class CategoryService {
     return this.categoryModel.findByIdAndUpdate(id, dto, {
       new: true,
       useFindAndModify: false,
-    });
+    }).exec();
   }
 
   async deleteById(id: string) {

@@ -10,7 +10,7 @@ export class CategoryDto {
 
   @IsOptional()
   @IsString()
-  parentId?: string;
+  parentCode?: string;
 
   @IsBoolean()
   isDeleted: boolean;

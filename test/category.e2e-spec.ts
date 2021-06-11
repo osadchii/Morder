@@ -23,7 +23,7 @@ describe('CategoryController (e2e)', () => {
     await app.init();
   });
 
-  it('/post (POST)', (done) => {
+  it('/post (POST) - Success', (done) => {
     return request(app.getHttpServer())
       .post('/category/post')
       .send(dto)
@@ -35,13 +35,17 @@ describe('CategoryController (e2e)', () => {
       });
   });
 
-  it('/category/ (GET)', () => {
+  it('/category/ (GET)', (done) => {
     return request(app.getHttpServer())
       .get('/category/')
-      .expect(200);
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.length > 0);
+        done();
+      });
   });
 
-  it('/:id {DELETE)', () => {
+  it('/:id {DELETE) - Success', () => {
     return request(app.getHttpServer())
       .delete('/category/' + createdId)
       .expect(200);

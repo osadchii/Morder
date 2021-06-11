@@ -8,10 +8,10 @@ export interface CategoryModel extends Base {
 export class CategoryModel extends TimeStamps {
   @prop()
   name: string;
-  @prop()
+  @prop({ unique: true })
   erpCode: string;
   @prop()
   isDeleted: boolean;
   @prop()
-  parentId?: string;
+  parentCode?: string;
 }
