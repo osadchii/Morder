@@ -4,15 +4,18 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
 
-describe('Category Controller (e2e)', () => {
+describe('Product Controller (e2e)', () => {
   let app: INestApplication;
 
   let createdId: string;
   const dto = {
-    name: 'Test case category',
+    name: 'Test case product',
     erpCode: 'testErpCode',
     isDeleted: false,
+    articul: 'test articul',
+    categoryCode: 'test category code',
   };
+  const updatedName = 'updated test name';
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -23,9 +26,9 @@ describe('Category Controller (e2e)', () => {
     await app.init();
   });
 
-  it('/post (POST) - Success', (done) => {
+  it('/post (POST) (create) - Success', (done) => {
     return request(app.getHttpServer())
-      .post('/category/post')
+      .post('/product/post')
       .send(dto)
       .expect(200)
       .then(({ body }) => {
@@ -35,9 +38,13 @@ describe('Category Controller (e2e)', () => {
       });
   });
 
-  it('/category/ (GET)', (done) => {
+  it('/product/getPage (POST) - Success', (done) => {
     return request(app.getHttpServer())
-      .get('/category/')
+      .post('/product/getPage')
+      .send({
+        offset: 0,
+        limit: 5,
+      })
       .expect(200)
       .then(({ body }) => {
         expect(body.length > 0);
@@ -45,9 +52,30 @@ describe('Category Controller (e2e)', () => {
       });
   });
 
+  it('/product/getById/:id - Success', (done) => {
+    return request(app.getHttpServer())
+      .get('/product/getById/' + createdId)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articul).toBeDefined();
+        done();
+      });
+  });
+
+  it('/product/post (update) - Success', (done) => {
+    return request(app.getHttpServer())
+      .post('/product/post')
+      .send({ ...dto, name: updatedName })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.name).toEqual(updatedName);
+        done();
+      });
+  });
+
   it('/:id {DELETE) - Success', () => {
     return request(app.getHttpServer())
-      .delete('/category/' + createdId)
+      .delete('/product/' + createdId)
       .expect(200);
   });
 
