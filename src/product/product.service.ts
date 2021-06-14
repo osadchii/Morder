@@ -12,7 +12,7 @@ export class ProductService {
   ) {
   }
 
-  async getById(id: string){
+  async getById(id: string) {
     return this.productModel.findById(id).exec();
   }
 
@@ -41,5 +41,49 @@ export class ProductService {
       new: true,
       useFindAndModify: false,
     }).exec();
+  }
+
+  async deleteById(id: string) {
+    return this.productModel.findByIdAndDelete(id).exec();
+  }
+
+  async updateStock(erpCode: string, stock: number) {
+    return this.productModel.findOneAndUpdate({
+        erpCode,
+      },
+      {
+        stock,
+      },
+      {
+        new: true,
+        useFindAndModify: false,
+      }).exec();
+  }
+
+  async getStocks() {
+    return this.productModel.aggregate()
+      .match({
+        isDeleted: false,
+      })
+      .project({
+        _id: 0,
+        articul: 1,
+        stock: 1,
+      })
+      .exec();
+  }
+
+  async getStocksByArticuls(articuls: string[]) {
+    return this.productModel.aggregate()
+      .match({
+        isDeleted: false,
+        articul: { $in: articuls },
+        stock: { $exists: true },
+      })
+      .project({
+        _id: 0,
+        articul: 1,
+        stock: 1,
+      }).exec();
   }
 }

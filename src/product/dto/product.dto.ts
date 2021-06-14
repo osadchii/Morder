@@ -32,10 +32,6 @@ export class ProductDto {
 
   @IsOptional()
   @IsNumber()
-  stock?: number;
-
-  @IsOptional()
-  @IsNumber()
   weight?: number;
 
   @IsOptional()
