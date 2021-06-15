@@ -59,5 +59,4 @@ export class ProductDto {
   @ValidateNested()
   @Type(() => ProductCharacteristicDto)
   characteristics?: ProductCharacteristicDto[];
-
 }

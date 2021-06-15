@@ -27,20 +27,17 @@ export class ProductService {
 
   async createOrUpdate(dto: ProductDto) {
     const { erpCode } = dto;
-    const product = await this.productModel.findOne({
-      erpCode,
-    }, { _id: 1 });
-
-    if (!product) {
-      return this.productModel.create(dto)
-        .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
-    }
-
-    return this.productModel.findByIdAndUpdate(product._id, dto, {
+    return this.productModel.findOneAndUpdate({ erpCode }, dto, {
+      upsert: true,
       new: true,
       useFindAndModify: false,
-    }).exec()
-      .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
+      projection: {
+        __v: 0,
+        updatedAt: 0,
+        createdAt: 0
+      }
+    }).catch((error) =>
+      ServiceErrorHandler.catchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
@@ -80,6 +77,9 @@ export class ProductService {
     }
     return this.productModel.aggregate()
       .match(match)
+      .sort({
+        articul: 1,
+      })
       .project({
         _id: 0,
         articul: 1,

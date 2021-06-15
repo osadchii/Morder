@@ -18,6 +18,7 @@ import { SetStockDto } from './dto/set-stock.dto';
 
 @Controller('product')
 export class ProductController {
+
   constructor(private readonly productService: ProductService) {
   }
 

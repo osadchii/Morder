@@ -28,23 +28,18 @@ export class CategoryService {
   }
 
   async createOrUpdate(dto: CategoryDto) {
-    if (dto.isDeleted === null) {
-      dto.isDeleted = false;
-    }
     const { erpCode } = dto;
-    const id = await this.categoryModel.findOne({
-      erpCode,
-    }, { _id: 1 });
-
-    if (!id) {
-      return this.categoryModel.create(dto)
-        .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
-    }
-
-    return this.categoryModel.findByIdAndUpdate(id, dto, {
+    return this.categoryModel.findOneAndUpdate({ erpCode }, dto, {
+      upsert: true,
       new: true,
       useFindAndModify: false,
-    }).exec();
+      projection: {
+        __v: 0,
+        updatedAt: 0,
+        createdAt: 0
+      }
+    }).catch((error) =>
+      ServiceErrorHandler.catchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
