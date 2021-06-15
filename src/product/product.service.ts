@@ -3,6 +3,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
 import { ProductDto } from './dto/product.dto';
+import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 
 @Injectable()
 export class ProductService {
@@ -25,22 +26,21 @@ export class ProductService {
   }
 
   async createOrUpdate(dto: ProductDto) {
-    if (dto.isDeleted === null) {
-      dto.isDeleted = false;
-    }
     const { erpCode } = dto;
-    const id = await this.productModel.findOne({
+    const product = await this.productModel.findOne({
       erpCode,
     }, { _id: 1 });
 
-    if (!id) {
-      return this.productModel.create(dto);
+    if (!product) {
+      return this.productModel.create(dto)
+        .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
     }
 
-    return this.productModel.findByIdAndUpdate(id, dto, {
+    return this.productModel.findByIdAndUpdate(product._id, dto, {
       new: true,
       useFindAndModify: false,
-    }).exec();
+    }).exec()
+      .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
@@ -86,4 +86,5 @@ export class ProductService {
         stock: 1,
       }).exec();
   }
+
 }

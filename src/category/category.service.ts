@@ -3,6 +3,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { CategoryModel } from './category.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryDto } from './dto/category.dto';
+import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 
 @Injectable()
 export class CategoryService {
@@ -36,7 +37,8 @@ export class CategoryService {
     }, { _id: 1 });
 
     if (!id) {
-      return this.categoryModel.create(dto);
+      return this.categoryModel.create(dto)
+        .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
     }
 
     return this.categoryModel.findByIdAndUpdate(id, dto, {
@@ -46,6 +48,7 @@ export class CategoryService {
   }
 
   async deleteById(id: string) {
-    return this.categoryModel.findByIdAndDelete(id).exec();
+    return this.categoryModel.findByIdAndDelete(id).exec()
+      .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
   }
 }
