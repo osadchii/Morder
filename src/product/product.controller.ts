@@ -21,6 +21,9 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {
   }
 
+  // PRODUCTS
+
+  // Get product by id
   @Get('getById/:id')
   async getById(@Param('id', IdValidationPipe) id: string) {
     const product = await this.productService.getById(id);
@@ -30,6 +33,7 @@ export class ProductController {
     return product;
   }
 
+  // Get products page
   @UsePipes(new ValidationPipe())
   @Post('getPage')
   @HttpCode(200)
@@ -37,16 +41,7 @@ export class ProductController {
     return this.productService.getProductsWithOffsetLimit(offset, limit);
   }
 
-  @Get('stocks')
-  async getStocks() {
-    return this.productService.getStocks();
-  }
-
-  @Post('stocksByArticuls')
-  async getStocksByArticuls(@Body() articuls: string[]) {
-    return this.productService.getStocksByArticuls(articuls);
-  }
-
+  // Create or update product. Looking for erp code
   @UsePipes(new ValidationPipe())
   @Post('post')
   @HttpCode(200)
@@ -54,6 +49,7 @@ export class ProductController {
     return this.productService.createOrUpdate(dto);
   }
 
+  // Force delete product by id
   @Delete(':id')
   async delete(@Param('id', IdValidationPipe) id: string) {
     const deletedProduct = await this.productService.deleteById(id);
@@ -63,6 +59,9 @@ export class ProductController {
     return deletedProduct;
   }
 
+  // STOCKS
+
+  // Set stock by erp code
   @UsePipes(new ValidationPipe())
   @Post('setStock')
   async updateStock(@Body() { erpCode, stock }: SetStockDto) {
@@ -72,4 +71,18 @@ export class ProductController {
     }
     return updatedProduct;
   }
+
+  // Get all stocks per articul
+  @Get('stocks')
+  async getStocks() {
+    return this.productService.getStocks();
+  }
+
+  // Get stocks by articuls array
+  @Post('stocksByArticuls')
+  @HttpCode(200)
+  async getStocksByArticuls(@Body() articuls: string[]) {
+    return this.productService.getStocks(articuls);
+  }
+
 }

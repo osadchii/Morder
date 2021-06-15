@@ -60,26 +60,26 @@ export class ProductService {
       }).exec();
   }
 
-  async getStocks() {
-    return this.productModel.aggregate()
-      .match({
-        isDeleted: false,
-      })
-      .project({
-        _id: 0,
-        articul: 1,
-        stock: 1,
-      })
-      .exec();
-  }
+  async getStocks(articuls?: string[]) {
+    interface matchType {
+      isDeleted: boolean;
+      stock: { $exists: boolean },
+      articul?: { $in: string[] }
+    }
 
-  async getStocksByArticuls(articuls: string[]) {
+    let match: matchType = {
+      isDeleted: false,
+      stock: { $exists: true },
+    };
+    if (articuls) {
+      match.articul = {
+        $in: articuls.map((value) => {
+          return value.trim();
+        }),
+      };
+    }
     return this.productModel.aggregate()
-      .match({
-        isDeleted: false,
-        articul: { $in: articuls },
-        stock: { $exists: true },
-      })
+      .match(match)
       .project({
         _id: 0,
         articul: 1,
