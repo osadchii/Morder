@@ -14,7 +14,12 @@ export class ProductService {
   }
 
   async getById(id: string) {
-    return this.productModel.findById(id).exec();
+    return this.productModel.findById(id, {
+      stock: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0
+    }).exec();
   }
 
   async getProductsWithOffsetLimit(offset: number, limit: number) {
@@ -22,6 +27,12 @@ export class ProductService {
       .sort({ _id: 1 })
       .limit(limit)
       .skip(offset)
+      .project({
+        stock: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0
+      })
       .exec();
   }
 

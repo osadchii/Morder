@@ -1,0 +1,1 @@
+export const COMPANY_NOT_FOUND_ERROR = 'Company not found';

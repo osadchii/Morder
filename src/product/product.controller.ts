@@ -2,7 +2,7 @@ import {
   Body,
   Controller, Delete,
   Get,
-  HttpCode,
+  HttpCode, HttpException,
   NotFoundException,
   Param,
   Post,
@@ -13,13 +13,15 @@ import { ProductDto } from './dto/product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
 import { ProductService } from './product.service';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
-import { PRODUCT_NOT_FOUND_ERROR } from './product.constants';
+import { CATEGORY_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
 import { SetStockDto } from './dto/set-stock.dto';
+import { CategoryService } from '../category/category.service';
 
 @Controller('product')
 export class ProductController {
 
-  constructor(private readonly productService: ProductService) {
+  constructor(private readonly productService: ProductService,
+              private readonly categoryService: CategoryService) {
   }
 
   // PRODUCTS
@@ -47,6 +49,12 @@ export class ProductController {
   @Post('post')
   @HttpCode(200)
   async post(@Body() dto: ProductDto) {
+    if (dto.categoryCode) {
+      const category = await this.categoryService.getByErpCode(dto.categoryCode);
+      if (!category) {
+        throw new HttpException(CATEGORY_NOT_FOUND_ERROR, 422);
+      }
+    }
     return this.productService.createOrUpdate(dto);
   }
 

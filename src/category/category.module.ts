@@ -15,6 +15,7 @@ import { CategoryService } from './category.service';
     ]),
   ],
   providers: [CategoryService],
+  exports: [CategoryService]
 })
 export class CategoryModule {
 }

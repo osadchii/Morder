@@ -6,6 +6,7 @@ import { CategoryModule } from './category/category.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { getMongoConfig } from './configs/mongo.config';
     }),
     ProductModule,
     CategoryModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
