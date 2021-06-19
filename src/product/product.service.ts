@@ -4,6 +4,7 @@ import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
 import { ProductDto } from './dto/product.dto';
 import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
+import { SetStockDto } from './dto/set-stock.dto';
 
 @Injectable()
 export class ProductService {
@@ -16,9 +17,10 @@ export class ProductService {
   async getById(id: string) {
     return this.productModel.findById(id, {
       stock: 0,
+      price: 0,
       createdAt: 0,
       updatedAt: 0,
-      __v: 0
+      __v: 0,
     }).exec();
   }
 
@@ -29,9 +31,10 @@ export class ProductService {
       .skip(offset)
       .project({
         stock: 0,
+        price: 0,
         createdAt: 0,
         updatedAt: 0,
-        __v: 0
+        __v: 0,
       })
       .exec();
   }
@@ -45,8 +48,8 @@ export class ProductService {
       projection: {
         __v: 0,
         updatedAt: 0,
-        createdAt: 0
-      }
+        createdAt: 0,
+      },
     }).catch((error) =>
       ServiceErrorHandler.catchNotUniqueValueError(error));
   }
@@ -55,7 +58,7 @@ export class ProductService {
     return this.productModel.findByIdAndDelete(id).exec();
   }
 
-  async updateStock(erpCode: string, stock: number) {
+  async updateStock({ erpCode, stock }: SetStockDto) {
     return this.productModel.findOneAndUpdate({
         erpCode,
       },

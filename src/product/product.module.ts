@@ -16,6 +16,7 @@ import { CategoryModule } from '../category/category.module';
     ]),
     CategoryModule
   ],
-  providers: [ProductService]
+  providers: [ProductService],
+  exports: [ProductService]
 })
 export class ProductModule {}

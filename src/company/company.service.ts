@@ -13,11 +13,8 @@ export class CompanyService {
   }
 
   async get() {
-    return this.companyModel.findOne({}, {
-      __v: 0,
-      updatedAt: 0,
-      createdAt: 0,
-    }).exec();
+    return this.companyModel.findOne({},
+      CompanyService.defaultProjection()).exec();
   }
 
   async createOrUpdate(dto: CompanyDto) {
@@ -27,12 +24,15 @@ export class CompanyService {
         upsert: true,
         useFindAndModify: false,
         new: true,
-        projection: {
-          __v: 0,
-          updatedAt: 0,
-          createdAt: 0,
-        },
+        projection: CompanyService.defaultProjection(),
       }).exec();
   }
 
+  private static defaultProjection() {
+    return {
+      __v: 0,
+      updatedAt: 0,
+      createdAt: 0,
+    };
+  }
 }

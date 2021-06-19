@@ -1,7 +1,7 @@
-<h1>Morder – Marketplace management sytem</h1>
+<h1>Morder – Marketplace management system</h1>
 
-Integration with russian marketplaces: Ozon, Yandex, Sber, Wildberries. 
+Integration with russian marketplaces: Ozon, Yandex.Market, SberMegaMarket, Wildberries. 
 
 Author: Osadchii Anton
-</br>
+<br/>
 License: not now 

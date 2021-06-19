@@ -14,6 +14,7 @@ import { CompanyModel } from './company.model';
         }},
     ]),
   ],
-  providers: [CompanyService]
+  providers: [CompanyService],
+  exports: [CompanyService]
 })
 export class CompanyModule {}

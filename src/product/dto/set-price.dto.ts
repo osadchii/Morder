@@ -1,10 +1,10 @@
 import { IsNumber, IsString } from 'class-validator';
 
-export class SetStockDto {
+export class SetPriceDto {
 
   @IsString()
   erpCode: string;
 
   @IsNumber()
-  stock: number;
+  price: number;
 }

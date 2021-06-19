@@ -11,9 +11,10 @@ describe('Product Controller (e2e)', () => {
   const dto = {
     name: 'Test case product',
     erpCode: 'testErpCode',
+    barcode: '12',
     isDeleted: false,
     articul: 'test articul',
-    categoryCode: 'test category code',
+    categoryCode: '1',
   };
   const updatedName = 'updated test name';
 

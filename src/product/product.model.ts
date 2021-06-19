@@ -1,11 +1,28 @@
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
+import { Types } from 'mongoose';
 
 class ProductCharacteristic {
+
   @prop()
   name: string;
+
   @prop()
   value: string;
+
+}
+
+class ProductMarketplaceSettings {
+
+  @prop()
+  marketplaceId: Types.ObjectId;
+
+  @prop()
+  nullifyStock: boolean;
+
+  @prop()
+  ignoreRestrictions: boolean;
+
 }
 
 export interface ProductModel extends Base {
@@ -32,7 +49,13 @@ export class ProductModel extends TimeStamps {
   isDeleted: boolean;
 
   @prop()
+  barcode: string;
+
+  @prop()
   stock?: number;
+
+  @prop()
+  price?: number;
 
   @prop()
   weight?: number;
@@ -54,5 +77,8 @@ export class ProductModel extends TimeStamps {
 
   @prop({ type: () => [ProductCharacteristic], _id: false })
   characteristics?: ProductCharacteristic[];
+
+  @prop({type: () => [ProductMarketplaceSettings], _id: false})
+  marketplaceSettings?: ProductMarketplaceSettings[];
 
 }

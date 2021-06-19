@@ -3,7 +3,7 @@ import {
   Controller, Delete,
   Get,
   HttpCode, HttpException,
-  NotFoundException,
+  NotFoundException, NotImplementedException,
   Param,
   Post,
   UsePipes,
@@ -16,6 +16,7 @@ import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
 import { SetStockDto } from './dto/set-stock.dto';
 import { CategoryService } from '../category/category.service';
+import { SetPriceDto } from './dto/set-price.dto';
 
 @Controller('product')
 export class ProductController {
@@ -37,16 +38,16 @@ export class ProductController {
   }
 
   // Get products page
-  @UsePipes(new ValidationPipe())
   @Post('getPage')
+  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async get(@Body() { offset, limit }: GetProductsDto) {
     return this.productService.getProductsWithOffsetLimit(offset, limit);
   }
 
   // Create or update product. Looking for erp code
-  @UsePipes(new ValidationPipe())
   @Post('post')
+  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async post(@Body() dto: ProductDto) {
     if (dto.categoryCode) {
@@ -71,10 +72,11 @@ export class ProductController {
   // STOCKS
 
   // Set stock by erp code
-  @UsePipes(new ValidationPipe())
   @Post('setStock')
-  async updateStock(@Body() { erpCode, stock }: SetStockDto) {
-    const updatedProduct = await this.productService.updateStock(erpCode, stock);
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  async updateStock(@Body() dto: SetStockDto) {
+    const updatedProduct = await this.productService.updateStock(dto);
     if (!updatedProduct) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
@@ -92,6 +94,15 @@ export class ProductController {
   @HttpCode(200)
   async getStocksByArticuls(@Body() articuls: string[]) {
     return this.productService.getStocks(articuls);
+  }
+
+  // PRICES
+
+  @Post('setBasePrice')
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  async updateBasePrice(@Body() { erpCode, price }: SetPriceDto) {
+    throw new NotImplementedException();
   }
 
 }

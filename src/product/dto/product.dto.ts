@@ -30,6 +30,9 @@ export class ProductDto {
   @IsBoolean()
   isDeleted: boolean;
 
+  @IsString()
+  barcode: string;
+
   @IsOptional()
   @IsNumber()
   weight?: number;
