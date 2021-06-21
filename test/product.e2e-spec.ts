@@ -14,7 +14,7 @@ describe('Product Controller (e2e)', () => {
     barcode: '12',
     isDeleted: false,
     articul: 'test articul',
-    categoryCode: '1',
+    categoryCode: '1111221',
   };
   const updatedName = 'updated test name';
 
