@@ -1,20 +1,29 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { ProductService } from '../product/product.service';
+import { CategoryService } from '../category/category.service';
+import { GoodsFeedGenerator } from '../marketplace/feed/goods-feed.generator';
+import { CompanyService } from '../company/company.service';
+import { MarketplaceService } from '../marketplace/marketplace.service';
 
 @Injectable()
 export class TaskService {
 
-  private readonly logger = new Logger(TaskService.name);
-
-  constructor(private readonly productService: ProductService) {
+  constructor(private readonly companyService: CompanyService,
+              private readonly productService: ProductService,
+              private readonly categoryService: CategoryService,
+              private readonly marketplaceService: MarketplaceService) {
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Interval(10000)
   async generateFeeds() {
-    const stocks = await this.productService.getStocks();
-    const data = JSON.stringify(stocks);
-    this.logger.log(data);
+    const generator = new GoodsFeedGenerator(this.companyService,
+      this.categoryService,
+      this.productService,
+      this.marketplaceService,
+      '1');
+
+    await generator.generateFeed();
   }
 
 }

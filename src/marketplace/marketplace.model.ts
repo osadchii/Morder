@@ -1,11 +1,13 @@
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
 
-export const enum MarketplaceType {
+export enum MarketplaceType {
   SberMegaMarket = 'SberMegaMarket',
+  YandexMarketFBS = 'YandexMarketFBS',
+  Wildberries = 'Wildberries',
   Ozon = 'Ozon',
-  YandexMarket = 'YandexMarket',
-  Wildberries = 'Wildberries'
+  Meso = 'Meso',
+  Aliexpress = 'Aliexpress'
 }
 
 export interface MarketplaceModel extends Base {
@@ -13,10 +15,10 @@ export interface MarketplaceModel extends Base {
 
 export class MarketplaceModel extends TimeStamps {
 
-  @prop()
+  @prop({ required: true })
   name: string;
 
-  @prop()
+  @prop({ required: true, enum: MarketplaceType })
   type: MarketplaceType;
 
   @prop()
@@ -24,4 +26,10 @@ export class MarketplaceModel extends TimeStamps {
 
   @prop()
   nullifyStocks: boolean;
+
+  @prop()
+  sentStocksAndPricesAt?: Date;
+
+  @prop()
+  sendStocksAndPriceEveryMinutes: number;
 }
