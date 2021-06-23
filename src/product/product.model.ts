@@ -49,6 +49,9 @@ export class ProductModel extends TimeStamps {
   isDeleted: boolean;
 
   @prop()
+  countryOfOrigin?: string;
+
+  @prop()
   barcode: string;
 
   @prop()

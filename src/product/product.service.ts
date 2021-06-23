@@ -5,6 +5,7 @@ import { ProductModel } from './product.model';
 import { ProductDto } from './dto/product.dto';
 import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 import { SetStockDto } from './dto/set-stock.dto';
+import { MarketplaceProductDto } from './dto/marketplace-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -100,5 +101,56 @@ export class ProductService {
         stock: 1,
       }).exec();
   }
+
+  async getMarketplaceProducts(marketplaceId: string): Promise<MarketplaceProductDto[]> {
+    return this.productModel.aggregate()
+      .match({
+        categoryCode: { $exists: true },
+      })
+      .addFields({
+        nullifyStock: {
+          $function: {
+            body: `function(marketplaceSettings, marketplaceId) {
+                    let nullify = false;
+                    if (marketplaceSettings) {
+                      marketplaceSettings.forEarch((item) => {
+                        if (item.marketplaceId == marketplaceId && item.nullifyStock) {
+                          nullify = true;
+                        }
+                      });
+                    }
+                    return nullify;
+                  }`,
+            args: ['$marketplaceSettings', marketplaceId],
+            lang: 'js',
+          },
+        },
+        ignoreRestrictions: {
+          $function: {
+            body: `function(marketplaceSettings, marketplaceId) {
+                    let ignore = false;
+                    if (marketplaceSettings) {
+                      marketplaceSettings.forEarch((item) => {
+                        if (item.marketplaceId == marketplaceId && item.ignoreRestrictions) {
+                          ignore = true;
+                        }
+                      });
+                    }
+                    return ignore;
+                  }`,
+            args: ['$marketplaceSettings', marketplaceId],
+            lang: 'js',
+          },
+        },
+      })
+      .project({
+        marketplaceSettings: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        _id: 0,
+        __v: 0
+      }).exec();
+  }
+
 
 }

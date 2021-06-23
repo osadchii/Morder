@@ -32,4 +32,7 @@ export class MarketplaceModel extends TimeStamps {
 
   @prop()
   sendStocksAndPriceEveryMinutes: number;
+
+  @prop()
+  warehouseId: number;
 }

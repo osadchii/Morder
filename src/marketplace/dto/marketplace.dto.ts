@@ -18,4 +18,7 @@ export class MarketplaceDto {
   @IsNumber()
   @Min(1)
   sendStocksAndPriceEveryMinutes: number;
+
+  @IsNumber()
+  warehouseId: number;
 }

@@ -38,6 +38,8 @@ export class MarketplaceService {
     return this.marketplaceModel
       .findByIdAndUpdate(id, {
         sentStocksAndPricesAt: new Date
+      }, {
+        useFindAndModify: false
       }).exec();
   }
 

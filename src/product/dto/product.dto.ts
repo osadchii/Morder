@@ -30,6 +30,10 @@ export class ProductDto {
   @IsBoolean()
   isDeleted: boolean;
 
+  @IsOptional()
+  @IsString()
+  countryOfOrigin?: string;
+
   @IsString()
   barcode: string;
 
