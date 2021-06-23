@@ -7,7 +7,10 @@ export interface CompanyModel extends Base {
 export class CompanyModel extends TimeStamps {
 
   @prop()
-  name: string;
+  shopName: string;
+
+  @prop()
+  companyName: string;
 
   @prop()
   url: string;

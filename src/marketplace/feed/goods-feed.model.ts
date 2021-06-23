@@ -9,6 +9,9 @@ interface Categories {
 }
 
 interface Shop {
+  name?: string,
+  company?: string,
+  url?: string,
   categories: Categories
 }
 

@@ -33,4 +33,16 @@ export class MarketplaceService {
         new: true,
       }).exec();
   }
+
+  async updateSentStocksAndPricesAt(id: string) {
+    return this.marketplaceModel
+      .findByIdAndUpdate(id, {
+        sentStocksAndPricesAt: new Date
+      }).exec();
+  }
+
+  async delete(id: string) {
+    return this.marketplaceModel
+      .findByIdAndDelete(id).exec();
+  }
 }

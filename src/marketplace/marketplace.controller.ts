@@ -1,4 +1,15 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { MarketplaceService } from './marketplace.service';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { MARKETPLACE_NOT_FOUND } from './marketplace.constants';
@@ -39,6 +50,15 @@ export class MarketplaceController {
       return new NotFoundException(MARKETPLACE_NOT_FOUND);
     }
     return marketplace;
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', IdValidationPipe) id: string) {
+    const deletedMarketplace = await this.marketplaceService.delete(id);
+    if (!deletedMarketplace){
+      throw new NotFoundException(MARKETPLACE_NOT_FOUND);
+    }
+    return deletedMarketplace;
   }
 
 }

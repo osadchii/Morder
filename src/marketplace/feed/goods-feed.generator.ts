@@ -5,6 +5,7 @@ import { MarketplaceService } from '../marketplace.service';
 import { MarketplaceCategoryDto } from '../../category/dto/marketplace-category.dto';
 import { GoodsFeedModel } from './goods-feed.model';
 import { Logger } from '@nestjs/common';
+import { CompanyModel } from '../../company/company.model';
 
 export class GoodsFeedGenerator {
 
@@ -20,6 +21,7 @@ export class GoodsFeedGenerator {
   async generateFeed() {
 
     const categories = await this.getMarketplaceCategories();
+    const company = await this.companyService.get();
 
     const goodsFeed: GoodsFeedModel = {
       yml_catalog: {
@@ -32,13 +34,14 @@ export class GoodsFeedGenerator {
       },
     };
 
+    GoodsFeedGenerator.completeCompanyInfo(goodsFeed, company);
     GoodsFeedGenerator.completeCategories(goodsFeed, categories);
 
-    const builder = require('xmlBuilder');
-
-    const xml = builder.create(goodsFeed).end({ pretty: true });
+    const xml = GoodsFeedGenerator.serializeFeed(goodsFeed);
 
     this.logger.log(xml);
+
+    await this.marketplaceService.updateSentStocksAndPricesAt(this.marketplaceId);
   }
 
   private async getMarketplaceCategories() {
@@ -55,9 +58,20 @@ export class GoodsFeedGenerator {
     return categoriesByErpCode;
   }
 
+  private static completeCompanyInfo(feed: GoodsFeedModel, company: CompanyModel) {
+    if (!company){
+      return;
+    }
+    const shop = feed.yml_catalog.shop;
+    shop.company = company.companyName;
+    shop.name = company.shopName;
+    shop.url = company.url;
+  }
+
   private static completeCategories(feed: GoodsFeedModel, categories: Map<string, MarketplaceCategoryDto>) {
+    const categoryList = feed.yml_catalog.shop.categories.category;
     categories.forEach((category) => {
-      feed.yml_catalog.shop.categories.category.push({
+      categoryList.push({
         '#text': category.name,
         '@id': category.number,
         '@parent':
@@ -66,8 +80,12 @@ export class GoodsFeedGenerator {
     });
   }
 
-  private static nowDateString(): string {
+  private static serializeFeed(feed: GoodsFeedModel) {
+    const builder = require('xmlBuilder');
+    return builder.create(feed).end({ pretty: true });
+  }
 
+  private static nowDateString(): string {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
@@ -82,7 +100,6 @@ export class GoodsFeedGenerator {
       return `${number}`;
     };
 
-    return `${year}-${numberWithLeadZero(month)}-${numberWithLeadZero(day)}` +
-      `${numberWithLeadZero(hour)}:${numberWithLeadZero(minute)}`;
+    return `${year}-${numberWithLeadZero(month)}-${numberWithLeadZero(day)} ${numberWithLeadZero(hour)}:${numberWithLeadZero(minute)}`;
   }
 }

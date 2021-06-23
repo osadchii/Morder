@@ -17,13 +17,22 @@ export class TaskService {
 
   @Interval(10000)
   async generateFeeds() {
-    const generator = new GoodsFeedGenerator(this.companyService,
-      this.categoryService,
-      this.productService,
-      this.marketplaceService,
-      '1');
 
-    await generator.generateFeed();
+    const marketplaces = await this.marketplaceService.getAll();
+
+    for (const marketplace of marketplaces) {
+      const now = new Date();
+      const date = new Date(now.getTime() - marketplace.sendStocksAndPriceEveryMinutes * 60000);
+      if (date < marketplace.sentStocksAndPricesAt) {
+        continue;
+      }
+      const generator = new GoodsFeedGenerator(this.companyService,
+        this.categoryService,
+        this.productService,
+        this.marketplaceService,
+        marketplace.id);
+
+      await generator.generateFeed();
+    }
   }
-
 }

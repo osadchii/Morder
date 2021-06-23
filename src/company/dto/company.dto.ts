@@ -4,7 +4,10 @@ export class CompanyDto {
 
 
   @IsString()
-  name: string;
+  shopName: string;
+
+  @IsString()
+  companyName: string;
 
   @IsUrl()
   url: string;
