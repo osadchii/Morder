@@ -1,3 +1,3 @@
 export interface FeedGenerator {
-  generateFeed();
+  generateFeed(startDate: Date);
 }

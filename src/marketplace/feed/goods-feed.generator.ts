@@ -38,7 +38,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
     private readonly marketplace: MarketplaceModel) {
   }
 
-  async generateFeed() {
+  async generateFeed(startDate: Date) {
 
     const categories = await this
       .getMarketplaceCategories();
@@ -58,22 +58,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
     await this.saveFeedFile(xml);
 
     await this.marketplaceService
-      .updateSentStocksAndPricesAt(this.marketplace._id.toHexString());
-  }
-
-  private async getMarketplaceCategories() {
-    let categoryNumber = 1;
-
-    const categories = await this.categoryService
-      .getMarketplaceCategories(this.marketplace._id.toHexString());
-    const categoriesByErpCode = new Map<string, MarketplaceCategoryDto>();
-
-    categories.forEach((item) => {
-      item.number = categoryNumber++;
-      categoriesByErpCode.set(item.erpCode, item);
-    });
-
-    return categoriesByErpCode;
+      .updateSentStocksAndPricesAt(this.marketplace._id, startDate);
   }
 
   private completeCompanyInfo(company: CompanyModel) {
@@ -100,7 +85,8 @@ export class GoodsFeedGenerator implements FeedGenerator {
     });
   }
 
-  private completeProducts(categories: Map<string, MarketplaceCategoryDto>, products: MarketplaceProductDto[]) {
+  private completeProducts(categories: Map<string, MarketplaceCategoryDto>,
+                           products: MarketplaceProductDto[]) {
 
     const offerList = this.goodsFeed.yml_catalog.shop.offers.offer;
 
@@ -123,6 +109,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
           name: item.name,
           categoryId: category.number,
           price: item.price,
+          description: item.description,
           barcode: item.barcode,
           outlets: {
             outlet: [
@@ -166,6 +153,32 @@ export class GoodsFeedGenerator implements FeedGenerator {
       .end({ pretty: true });
   }
 
+  private async getMarketplaceCategories() {
+    let categoryNumber = 1;
+
+    const categories = await this.categoryService
+      .getMarketplaceCategories(this.marketplace._id.toHexString());
+    const categoriesByErpCode = new Map<string, MarketplaceCategoryDto>();
+
+    categories.forEach((item) => {
+      item.number = categoryNumber++;
+      categoriesByErpCode.set(item.erpCode, item);
+    });
+
+    return categoriesByErpCode;
+  }
+
+  private async saveFeedFile(xmlData: string) {
+    const path = this.configService.get('FEEDS_PATH');
+    await fs.access(path)
+      .catch((error) => {
+        if (error.code === 'ENOENT') {
+          fs.mkdir(path);
+        }
+      });
+    await fs.writeFile(`${path}/${this.marketplace._id}.xml`, xmlData);
+  }
+
   private static nowDateString(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -184,14 +197,4 @@ export class GoodsFeedGenerator implements FeedGenerator {
     return `${year}-${numberWithLeadZero(month)}-${numberWithLeadZero(day)} ${numberWithLeadZero(hour)}:${numberWithLeadZero(minute)}`;
   }
 
-  private async saveFeedFile(xmlData: string) {
-    const path = this.configService.get('FEEDS_PATH');
-    await fs.access(path)
-      .catch((error) => {
-        if (error.code === 'ENOENT') {
-          fs.mkdir(path);
-        }
-      });
-    await fs.writeFile(`${path}/${this.marketplace._id}.xml`, xmlData);
-  }
 }

@@ -8,7 +8,8 @@ import { MarketplaceModule } from '../marketplace/marketplace.module';
   imports: [CompanyModule,
     CategoryModule,
     ProductModule,
-    MarketplaceModule],
+    MarketplaceModule,
+  ],
 })
 export class TaskModule {
 }

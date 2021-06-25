@@ -3,6 +3,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { MarketplaceModel } from './marketplace.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { MarketplaceDto } from './dto/marketplace.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class MarketplaceService {
@@ -13,33 +14,34 @@ export class MarketplaceService {
   }
 
   async getAll() {
-    return this
-      .marketplaceModel.find({}).exec();
+    return this.marketplaceModel
+      .find({}).exec();
   }
 
   async getById(id: string) {
-    return this
-      .marketplaceModel.find({ id }).exec();
+    return this.marketplaceModel
+      .find({ id }).exec();
   }
 
   async create(dto: MarketplaceDto) {
-    return this
-      .marketplaceModel.create(dto);
+    return this.marketplaceModel
+      .create(dto);
   }
 
   async update(id: string, dto: MarketplaceDto) {
     return this.marketplaceModel
       .findByIdAndUpdate(id, dto, {
         new: true,
+        useFindAndModify: false,
       }).exec();
   }
 
-  async updateSentStocksAndPricesAt(id: string) {
+  async updateSentStocksAndPricesAt(id: Types.ObjectId, startDate: Date) {
     return this.marketplaceModel
       .findByIdAndUpdate(id, {
-        sentStocksAndPricesAt: new Date
+        sentStocksAndPricesAt: startDate,
       }, {
-        useFindAndModify: false
+        useFindAndModify: false,
       }).exec();
   }
 

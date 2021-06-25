@@ -23,17 +23,20 @@ export class TaskService {
   async generateFeeds() {
 
     const marketplaces = await this.marketplaceService.getAll();
+    const startDate = new Date();
 
     for (const marketplace of marketplaces) {
-      const now = new Date();
-      const date = new Date(now.getTime() - marketplace.sendStocksAndPriceEveryMinutes * 60000);
+      const millisecondsInterval = marketplace.sendStocksAndPriceEveryMinutes * 60000;
+      const date = new Date(startDate.getTime() - millisecondsInterval);
+
       if (date < marketplace.sentStocksAndPricesAt) {
         continue;
       }
+
       const generator = this.feedGeneratorByMarketplace(marketplace);
 
       if (generator) {
-        await generator.generateFeed();
+        await generator.generateFeed(startDate);
       }
     }
   }

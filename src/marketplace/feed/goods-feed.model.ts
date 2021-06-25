@@ -30,6 +30,7 @@ export interface Offer {
   categoryId: number;
   price: number;
   barcode: string;
+  description?: string;
   outlets: Outlets;
   param: OfferParam[];
 }
