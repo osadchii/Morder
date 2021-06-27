@@ -2,6 +2,15 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
 import { Types } from 'mongoose';
 
+class SpecialPrice {
+
+  @prop({ lowercase: true, trim: true })
+  priceName: string;
+
+  @prop()
+  price: number;
+}
+
 class ProductCharacteristic {
 
   @prop()
@@ -81,7 +90,10 @@ export class ProductModel extends TimeStamps {
   @prop({ type: () => [ProductCharacteristic], _id: false })
   characteristics?: ProductCharacteristic[];
 
-  @prop({type: () => [ProductMarketplaceSettings], _id: false})
+  @prop({ type: () => [ProductMarketplaceSettings], _id: false })
   marketplaceSettings?: ProductMarketplaceSettings[];
+
+  @prop({ type: () => [SpecialPrice], _id: false })
+  specialPrices?: SpecialPrice[];
 
 }

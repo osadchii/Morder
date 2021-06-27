@@ -25,7 +25,7 @@ export interface MarketplaceProductDto {
 
   stock?: number;
 
-  price?: number;
+  calculatedPrice: number;
 
   weight?: number;
 

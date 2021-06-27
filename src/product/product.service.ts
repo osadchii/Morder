@@ -6,6 +6,9 @@ import { ProductDto } from './dto/product.dto';
 import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 import { SetStockDto } from './dto/set-stock.dto';
 import { MarketplaceProductDto } from './dto/marketplace-product.dto';
+import { SetPriceDto } from './dto/set-price.dto';
+import { SetSpecialPriceDto } from './dto/set-special-price.dto';
+import { MarketplaceModel } from '../marketplace/marketplace.model';
 
 @Injectable()
 export class ProductService {
@@ -14,6 +17,8 @@ export class ProductService {
     private readonly productModel: ModelType<ProductModel>,
   ) {
   }
+
+  // Base actions
 
   async getById(id: string) {
     return this.productModel.findById(id, {
@@ -59,17 +64,26 @@ export class ProductService {
     return this.productModel.findByIdAndDelete(id).exec();
   }
 
+  // Stock actions
+
   async updateStock({ erpCode, stock }: SetStockDto) {
-    return this.productModel.findOneAndUpdate({
-        erpCode,
-      },
-      {
-        stock,
-      },
-      {
-        new: true,
-        useFindAndModify: false,
-      }).exec();
+    return this.productModel
+      .findOneAndUpdate({
+          erpCode,
+        },
+        {
+          stock,
+        },
+        {
+          new: true,
+          useFindAndModify: false,
+          projection: {
+            _id: 1,
+            articul: 1,
+            erpCode: 1,
+            stock: 1,
+          },
+        }).exec();
   }
 
   async getStocks(articuls?: string[]) {
@@ -98,11 +112,82 @@ export class ProductService {
       .project({
         _id: 0,
         articul: 1,
+        erpCode: 1,
         stock: 1,
       }).exec();
   }
 
-  async getMarketplaceProducts(marketplaceId: string): Promise<MarketplaceProductDto[]> {
+  // Price actions
+
+  async updateBasePrice({ erpCode, price }: SetPriceDto) {
+    return this.productModel
+      .findOneAndUpdate({
+        erpCode,
+      }, {
+        price,
+      }, {
+        new: true,
+        useFindAndModify: false,
+        projection: {
+          _id: 1,
+          articul: 1,
+          erpCode: 1,
+          price: 1,
+        },
+      }).exec();
+  }
+
+  async updateSpecialPrice({ erpCode, priceName, price }: SetSpecialPriceDto) {
+    const product = await this.productModel
+      .findOne({ erpCode },
+        {
+          specialPrices: 1,
+        });
+
+    if (!product) {
+      return product;
+    }
+
+    const dtoPriceName = priceName.trim().toLowerCase();
+
+    let updated = false;
+    for (let row of product.specialPrices) {
+      //const priceName = row.priceName.trim().toLowerCase();
+      if (row.priceName === dtoPriceName) {
+        row.price = price;
+        updated = true;
+        break;
+      }
+    }
+
+    if (!updated) {
+      product.specialPrices.push({
+        priceName: dtoPriceName,
+        price: price,
+      });
+    }
+
+    return this.productModel
+      .findOneAndUpdate({
+        erpCode,
+      }, {
+        specialPrices: product.specialPrices,
+      }, {
+        new: true,
+        useFindAndModify: false,
+        projection: {
+          _id: 1,
+          articul: 1,
+          erpCode: 1,
+          specialPrices: 1,
+        },
+      }).exec();
+  }
+
+  // Marketplace actions
+
+  async getMarketplaceProducts({ _id, specialPriceName }: MarketplaceModel):
+    Promise<MarketplaceProductDto[]> {
     return this.productModel.aggregate()
       .match({
         categoryCode: { $exists: true },
@@ -113,7 +198,7 @@ export class ProductService {
             body: `function(marketplaceSettings, marketplaceId) {
                     let nullify = false;
                     if (marketplaceSettings) {
-                      marketplaceSettings.forEarch((item) => {
+                      marketplaceSettings.forEach((item) => {
                         if (item.marketplaceId == marketplaceId && item.nullifyStock) {
                           nullify = true;
                         }
@@ -121,7 +206,7 @@ export class ProductService {
                     }
                     return nullify;
                   }`,
-            args: ['$marketplaceSettings', marketplaceId],
+            args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
         },
@@ -130,7 +215,7 @@ export class ProductService {
             body: `function(marketplaceSettings, marketplaceId) {
                     let ignore = false;
                     if (marketplaceSettings) {
-                      marketplaceSettings.forEarch((item) => {
+                      marketplaceSettings.forEach((item) => {
                         if (item.marketplaceId == marketplaceId && item.ignoreRestrictions) {
                           ignore = true;
                         }
@@ -138,7 +223,23 @@ export class ProductService {
                     }
                     return ignore;
                   }`,
-            args: ['$marketplaceSettings', marketplaceId],
+            args: ['$marketplaceSettings', _id],
+            lang: 'js',
+          },
+        },
+        calculatedPrice: {
+          $function: {
+            body: `function(specialPrices, basePrice, specialPriceName) {
+                    let price = basePrice;
+                    if (specialPrices) {
+                      specialPrices.forEach((row) => {
+                        if (row.priceName === specialPriceName)
+                          price = row.price;
+                      });
+                    }
+                    return price;
+                  }`,
+            args: ['$specialPrices', '$price', specialPriceName],
             lang: 'js',
           },
         },
@@ -148,9 +249,7 @@ export class ProductService {
         createdAt: 0,
         updatedAt: 0,
         _id: 0,
-        __v: 0
+        __v: 0,
       }).exec();
   }
-
-
 }

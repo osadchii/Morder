@@ -43,7 +43,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
     const categories = await this
       .getMarketplaceCategories();
     const products = await this.productService
-      .getMarketplaceProducts(this.marketplace._id.toHexString());
+      .getMarketplaceProducts(this.marketplace);
     const company = await this.companyService
       .get();
 
@@ -91,7 +91,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
     const offerList = this.goodsFeed.yml_catalog.shop.offers.offer;
 
     products.forEach((item) => {
-      if (item.price != undefined
+      if (item.calculatedPrice != undefined
         && categories.has(item.categoryCode)) {
 
         const category = categories.get(item.categoryCode);
@@ -108,7 +108,7 @@ export class GoodsFeedGenerator implements FeedGenerator {
           '@available': available,
           name: item.name,
           categoryId: category.number,
-          price: item.price,
+          price: item.calculatedPrice,
           description: item.description,
           barcode: item.barcode,
           outlets: {

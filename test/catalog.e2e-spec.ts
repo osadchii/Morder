@@ -5,7 +5,7 @@ import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
 import { childCategoryDto, newProductName, parentCategoryDto, productDto } from './catalog.test-entity';
 
-// Mock schedule service
+// Mocking a service using schedule
 jest.mock('../src/task/task.service');
 
 describe('Product catalog (e2e)', () => {

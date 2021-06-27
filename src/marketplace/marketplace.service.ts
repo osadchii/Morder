@@ -20,7 +20,7 @@ export class MarketplaceService {
 
   async getById(id: string) {
     return this.marketplaceModel
-      .find({ id }).exec();
+      .findById(id).exec();
   }
 
   async create(dto: MarketplaceDto) {
@@ -36,10 +36,10 @@ export class MarketplaceService {
       }).exec();
   }
 
-  async updateSentStocksAndPricesAt(id: Types.ObjectId, startDate: Date) {
+  async updateSentStocksAndPricesAt(id: Types.ObjectId, date: Date) {
     return this.marketplaceModel
       .findByIdAndUpdate(id, {
-        sentStocksAndPricesAt: startDate,
+        sentStocksAndPricesAt: date,
       }, {
         useFindAndModify: false,
       }).exec();

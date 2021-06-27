@@ -35,4 +35,7 @@ export class MarketplaceModel extends TimeStamps {
 
   @prop()
   warehouseId: number;
+
+  @prop({ lowercase: true, trim: true })
+  specialPriceName?: string;
 }

@@ -1,9 +1,12 @@
 import { IsNumber, IsString, Min } from 'class-validator';
 
-export class SetPriceDto {
+export class SetSpecialPriceDto{
 
   @IsString()
-  erpCode: string;
+  erpCode:string;
+
+  @IsString()
+  priceName:string;
 
   @IsNumber()
   @Min(0)

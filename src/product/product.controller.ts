@@ -3,7 +3,7 @@ import {
   Controller, Delete,
   Get,
   HttpCode, HttpException,
-  NotFoundException, NotImplementedException,
+  NotFoundException,
   Param,
   Post,
   UsePipes,
@@ -17,6 +17,7 @@ import { CATEGORY_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.con
 import { SetStockDto } from './dto/set-stock.dto';
 import { CategoryService } from '../category/category.service';
 import { SetPriceDto } from './dto/set-price.dto';
+import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 
 @Controller('product')
 export class ProductController {
@@ -101,8 +102,23 @@ export class ProductController {
   @Post('setBasePrice')
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
-  async updateBasePrice(@Body() { erpCode, price }: SetPriceDto) {
-    throw new NotImplementedException();
+  async updateBasePrice(@Body() dto: SetPriceDto) {
+    const updatedProduct = await this.productService.updateBasePrice(dto);
+    if (!updatedProduct) {
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+    return updatedProduct;
+  }
+
+  @Post('setSpecialPrice')
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  async updateSpecialPrice(@Body() dto: SetSpecialPriceDto){
+    const updatedProduct = await this.productService.updateSpecialPrice(dto);
+    if (!updatedProduct) {
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+    return updatedProduct;
   }
 
 }
