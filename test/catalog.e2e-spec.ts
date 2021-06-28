@@ -3,7 +3,15 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
-import { childCategoryDto, newProductName, parentCategoryDto, productDto } from './catalog.test-entity';
+import {
+  checkStocksArticuls,
+  childCategoryDto,
+  newProductName,
+  parentCategoryDto,
+  productDto,
+  updateBasePriceDto, updateSpecialPriceDto,
+  updateStockDto,
+} from './catalog.test-entity';
 
 // Mocking a service using schedule
 jest.mock('../src/task/task.service');
@@ -128,13 +136,74 @@ describe('Product catalog (e2e)', () => {
 
   // UPDATE PRODUCTS
 
-  it('/product/post (update) - Success', async (done) => {
+  it('/product/post Update product - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/post')
       .send({ ...productDto, name: newProductName })
       .expect(200)
       .then(({ body }) => {
         expect(body.name).toEqual(newProductName);
+        done();
+      });
+  });
+
+  // UPDATE STOCKS
+
+  it('/product/setStock Update stock - Success', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setStock')
+      .send(updateStockDto)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.stock).toEqual(updateStockDto.stock);
+        expect(body.erpCode).toEqual(updateStockDto.erpCode);
+        done();
+      });
+  });
+
+  // GET STOCKS
+
+  it('/product/stocks Get stocks - Success', async (done) => {
+    return request(app.getHttpServer())
+      .get('/product/stocks')
+      .expect(200)
+      .then(({ body }) => checkStocks(body, done));
+  });
+
+  it('/product/stocksByArticuls Get stocks by articuls - Success', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/stocksByArticuls')
+      .send(checkStocksArticuls)
+      .expect(200)
+      .then(({ body }) => checkStocks(body, done));
+  });
+
+  // UPDATE PRICES
+
+  it('/product/setBasePrice Update base price - Success', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setBasePrice')
+      .send(updateBasePriceDto)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.price).toEqual(updateBasePriceDto.price);
+        expect(body.erpCode).toEqual(updateBasePriceDto.erpCode);
+        done();
+      });
+  });
+
+  it('/product/setSpecialPrice Update special price - Success', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setSpecialPrice')
+      .send(updateSpecialPriceDto)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.erpCode).toEqual(updateBasePriceDto.erpCode);
+        expect(body.specialPrices).toBeDefined();
+        expect(body.specialPrices[0].priceName)
+          .toEqual(updateSpecialPriceDto.priceName.trim().toLowerCase());
+        expect(body.specialPrices[0].price)
+          .toEqual(updateSpecialPriceDto.price);
         done();
       });
   });
@@ -164,4 +233,18 @@ describe('Product catalog (e2e)', () => {
   afterAll(() => {
     disconnect();
   });
+
+  // Utils
+
+  function checkStocks(body, done) {
+    expect(body.length).toBeGreaterThan(0);
+    let stock = 0;
+    body.forEach((item) => {
+      if (item.articul === productDto.articul) {
+        stock = item.stock;
+      }
+    });
+    expect(stock).toEqual(updateStockDto.stock);
+    done();
+  }
 });

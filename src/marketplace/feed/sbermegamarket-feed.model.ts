@@ -52,6 +52,6 @@ interface YmlCatalog {
   shop: Shop;
 }
 
-export interface GoodsFeedModel {
+export interface SberMegaMarketFeed {
   yml_catalog: YmlCatalog;
 }

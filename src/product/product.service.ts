@@ -246,6 +246,8 @@ export class ProductService {
       })
       .project({
         marketplaceSettings: 0,
+        price: 0,
+        specialPrices: 0,
         createdAt: 0,
         updatedAt: 0,
         _id: 0,

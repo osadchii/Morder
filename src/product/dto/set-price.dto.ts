@@ -6,6 +6,6 @@ export class SetPriceDto {
   erpCode: string;
 
   @IsNumber()
-  @Min(0)
+  @Min(0.01)
   price: number;
 }

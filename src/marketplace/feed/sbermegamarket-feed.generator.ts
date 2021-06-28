@@ -3,7 +3,7 @@ import { CategoryService } from '../../category/category.service';
 import { ProductService } from '../../product/product.service';
 import { MarketplaceService } from '../marketplace.service';
 import { MarketplaceCategoryDto } from '../../category/dto/marketplace-category.dto';
-import { GoodsFeedModel, Offer } from './goods-feed.model';
+import { SberMegaMarketFeed, Offer } from './sbermegamarket-feed.model';
 import { Logger } from '@nestjs/common';
 import { CompanyModel } from '../../company/company.model';
 import { FeedGenerator } from './feed.generator.interface';
@@ -12,12 +12,12 @@ import { MarketplaceModel } from '../marketplace.model';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 
-export class GoodsFeedGenerator implements FeedGenerator {
+export class SberMegaMarketFeedGenerator implements FeedGenerator {
 
-  private readonly logger = new Logger(GoodsFeedGenerator.name);
-  private readonly goodsFeed: GoodsFeedModel = {
+  private readonly logger = new Logger(SberMegaMarketFeedGenerator.name);
+  private readonly goodsFeed: SberMegaMarketFeed = {
     yml_catalog: {
-      '@date': GoodsFeedGenerator.nowDateString(),
+      '@date': SberMegaMarketFeedGenerator.nowDateString(),
       shop: {
         categories: {
           category: [],
