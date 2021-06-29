@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
@@ -9,12 +9,17 @@ import { MarketplaceProductDto } from './dto/marketplace-product.dto';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { MarketplaceModel } from '../marketplace/marketplace.model';
+import { ConfigService } from '@nestjs/config';
+import { FILE_IS_NOT_IMAGE, IMAGE_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
+import { createReadStream } from 'fs';
+import { ProductImageHelper } from './product.image';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(ProductModel)
     private readonly productModel: ModelType<ProductModel>,
+    private readonly configService: ConfigService,
   ) {
   }
 
@@ -28,6 +33,11 @@ export class ProductService {
       updatedAt: 0,
       __v: 0,
     }).exec();
+  }
+
+  async getByErpCode(erpCode: string) {
+    return this.productModel
+      .findOne({ erpCode }).exec();
   }
 
   async getProductsWithOffsetLimit(offset: number, limit: number) {
@@ -184,6 +194,63 @@ export class ProductService {
       }).exec();
   }
 
+  // Images
+
+  async uploadImage(erpCode: string, file: Express.Multer.File) {
+    const { mimetype } = file;
+    if (!ProductImageHelper.isImageMimeType(mimetype)) {
+      throw new HttpException(FILE_IS_NOT_IMAGE, 400);
+    }
+
+    const product = await this.productModel
+      .findOne({ erpCode },
+        {
+          _id: 1,
+        });
+
+    if (!product) {
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+
+    const fileName = ProductImageHelper
+      .fileNameWithExtension(product._id.toHexString(), mimetype);
+    const filePath = ProductImageHelper.imagePath(this.configService);
+    await ProductImageHelper.saveFile(filePath, fileName, file.buffer);
+
+    return this.productModel
+      .findOneAndUpdate({ erpCode },
+        { image: fileName }, {
+          new: true,
+          useFindAndModify: false,
+          projection: {
+            erpCode: 1,
+            image: 1,
+          },
+        },
+      );
+  }
+
+  async getImage(erpCode: string) {
+
+    const product = await this.productModel
+      .findOne({ erpCode },
+        {
+          image: 1,
+        });
+
+    if (!product) {
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+
+    if (!product.image) {
+      throw new NotFoundException(IMAGE_NOT_FOUND_ERROR);
+    }
+    const imagePath = ProductImageHelper.imagePath(this.configService);
+    const fullFileName = ProductImageHelper.fullFileName(imagePath, product.image);
+
+    return createReadStream(fullFileName);
+  }
+
   // Marketplace actions
 
   async getMarketplaceProducts({ _id, specialPriceName }: MarketplaceModel):
@@ -254,4 +321,5 @@ export class ProductService {
         __v: 0,
       }).exec();
   }
+
 }

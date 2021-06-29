@@ -5,9 +5,7 @@ import {
   HttpCode, HttpException,
   NotFoundException,
   Param,
-  Post,
-  UsePipes,
-  ValidationPipe,
+  Post, Res, UploadedFile, UseInterceptors,
 } from '@nestjs/common';
 import { ProductDto } from './dto/product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
@@ -18,6 +16,7 @@ import { SetStockDto } from './dto/set-stock.dto';
 import { CategoryService } from '../category/category.service';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('product')
 export class ProductController {
@@ -38,9 +37,18 @@ export class ProductController {
     return product;
   }
 
+  // Get product by erpCode
+  @Get('getByErpCode/:erpCode')
+  async getByErpCode(@Param('erpCode') erpCode: string) {
+    const product = await this.productService.getByErpCode(erpCode);
+    if (!product) {
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+    return product;
+  }
+
   // Get products page
   @Post('getPage')
-  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async get(@Body() { offset, limit }: GetProductsDto) {
     return this.productService.getProductsWithOffsetLimit(offset, limit);
@@ -48,7 +56,6 @@ export class ProductController {
 
   // Create or update product. Looking for erp code
   @Post('post')
-  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async post(@Body() dto: ProductDto) {
     if (dto.categoryCode) {
@@ -74,7 +81,6 @@ export class ProductController {
 
   // Set stock by erp code
   @Post('setStock')
-  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async updateStock(@Body() dto: SetStockDto) {
     const updatedProduct = await this.productService.updateStock(dto);
@@ -100,7 +106,6 @@ export class ProductController {
   // PRICES
 
   @Post('setBasePrice')
-  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   async updateBasePrice(@Body() dto: SetPriceDto) {
     const updatedProduct = await this.productService.updateBasePrice(dto);
@@ -111,14 +116,30 @@ export class ProductController {
   }
 
   @Post('setSpecialPrice')
-  @UsePipes(new ValidationPipe())
   @HttpCode(200)
-  async updateSpecialPrice(@Body() dto: SetSpecialPriceDto){
+  async updateSpecialPrice(@Body() dto: SetSpecialPriceDto) {
     const updatedProduct = await this.productService.updateSpecialPrice(dto);
     if (!updatedProduct) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
     return updatedProduct;
+  }
+
+  @Post('image/:erpCode')
+  @UseInterceptors(FileInterceptor('image'))
+  @HttpCode(200)
+  async uploadImage(@Param('erpCode') erpCode: string,
+                    @UploadedFile() file: Express.Multer.File) {
+    const updatedProduct = this.productService.uploadImage(erpCode, file);
+    if (!updatedProduct){
+      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+    }
+    return updatedProduct;
+  }
+
+  @Get('image/:erpCode')
+  async getImage(@Param('erpCode') erpCode: string, @Res() response) {
+    return (await this.productService.getImage(erpCode)).pipe(response);
   }
 
 }

@@ -9,14 +9,17 @@ import { CategoryModule } from '../category/category.module';
   controllers: [ProductController],
   imports: [
     TypegooseModule.forFeature([
-      { typegooseClass: ProductModel,
+      {
+        typegooseClass: ProductModel,
         schemaOptions: {
-          collection: 'Product'
-        }},
+          collection: 'Product',
+        },
+      },
     ]),
-    CategoryModule
+    CategoryModule,
   ],
   providers: [ProductService],
-  exports: [ProductService]
+  exports: [ProductService],
 })
-export class ProductModule {}
+export class ProductModule {
+}

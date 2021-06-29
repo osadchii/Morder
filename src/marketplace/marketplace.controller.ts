@@ -7,8 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { MarketplaceService } from './marketplace.service';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
@@ -36,14 +34,12 @@ export class MarketplaceController {
   }
 
   @Post('create')
-  @UsePipes(new ValidationPipe())
   async create(@Body() dto: MarketplaceDto) {
     console.log(JSON.stringify(dto));
     return this.marketplaceService.create(dto);
   }
 
   @Patch('update/:id')
-  @UsePipes(new ValidationPipe())
   async update(@Param('id', IdValidationPipe) id: string, @Body() dto: MarketplaceDto) {
     const marketplace = await this.marketplaceService.update(id, dto);
     if (!marketplace) {

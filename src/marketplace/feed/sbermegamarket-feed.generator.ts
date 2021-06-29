@@ -9,15 +9,17 @@ import { CompanyModel } from '../../company/company.model';
 import { FeedGenerator } from './feed.generator.interface';
 import { MarketplaceProductDto } from '../../product/dto/marketplace-product.dto';
 import { MarketplaceModel } from '../marketplace.model';
-import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
+import { format } from 'date-fns';
+import { path } from 'app-root-path';
+import { ensureDir, writeFile } from 'fs-extra';
 
 export class SberMegaMarketFeedGenerator implements FeedGenerator {
 
   private readonly logger = new Logger(SberMegaMarketFeedGenerator.name);
   private readonly goodsFeed: SberMegaMarketFeed = {
     yml_catalog: {
-      '@date': SberMegaMarketFeedGenerator.nowDateString(),
+      '@date': format(new Date(), 'yyyy-MM-dd HH:mm'),
       shop: {
         categories: {
           category: [],
@@ -169,32 +171,9 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
   }
 
   private async saveFeedFile(xmlData: string) {
-    const path = this.configService.get('FEEDS_PATH');
-    await fs.access(path)
-      .catch((error) => {
-        if (error.code === 'ENOENT') {
-          fs.mkdir(path);
-        }
-      });
-    await fs.writeFile(`${path}/${this.marketplace._id}.xml`, xmlData);
-  }
-
-  private static nowDateString(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    const numberWithLeadZero = (number: number): string => {
-      if (number < 10) {
-        return `0${number}`;
-      }
-      return `${number}`;
-    };
-
-    return `${year}-${numberWithLeadZero(month)}-${numberWithLeadZero(day)} ${numberWithLeadZero(hour)}:${numberWithLeadZero(minute)}`;
+    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
+    await ensureDir(feedPath);
+    await writeFile(`${feedPath}/${this.marketplace._id}.xml`, xmlData);
   }
 
 }

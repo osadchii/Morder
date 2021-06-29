@@ -7,8 +7,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { CategoryDto } from './dto/category.dto';
 import { CategoryService } from './category.service';
@@ -21,7 +19,6 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {
   }
 
-  @UsePipes(new ValidationPipe())
   @Post('post')
   @HttpCode(200)
   async post(@Body() dto: CategoryDto) {
@@ -33,7 +30,7 @@ export class CategoryController {
     return this.categoryService.getAll();
   }
 
-  @Get(':id')
+  @Get('getById/:id')
   async getById(@Param('id', IdValidationPipe) id: string) {
     const category = await this.categoryService.getById(id);
     if (!category) {

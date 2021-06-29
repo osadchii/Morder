@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
 import {
   checkStocksArticuls,
-  childCategoryDto,
+  childCategoryDto, negativePriceMessage, negativeStockMessage,
   newProductName,
   parentCategoryDto,
-  productDto,
+  productDto, randomId,
   updateBasePriceDto, updateSpecialPriceDto,
   updateStockDto,
 } from './catalog.test-entity';
@@ -29,6 +29,7 @@ describe('Product catalog (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
@@ -70,9 +71,9 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
-  it('/category/:id Get child category - Success', async (done) => {
+  it('/category/getById/:id Get child category - Success', async (done) => {
     return request(app.getHttpServer())
-      .get('/category/' + childCategoryId)
+      .get('/category/getById/' + childCategoryId)
       .expect(200)
       .then(({ body }) => {
         expect(body.parentCode).toBeDefined();
@@ -80,9 +81,15 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
+  it('/category/getById/:id Get child category - Fail',() => {
+    return request(app.getHttpServer())
+      .get('/category/getById/' + randomId)
+      .expect(404);
+  });
+
   // CREATE PRODUCTS
 
-  it('/product/post Create product with wrong category - Failed', () => {
+  it('/product/post Create product with wrong category - Fail', () => {
     return request(app.getHttpServer())
       .post('/product/post')
       .send({ ...productDto, categoryCode: 'wrongCategoryCode' })
@@ -101,7 +108,7 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
-  it('/product/post Create product with not unique articul - Failed', () => {
+  it('/product/post Create product with not unique articul - Fail', () => {
     return request(app.getHttpServer())
       .post('/product/post')
       .send({ ...productDto, erpCode: 'New test erp code' })
@@ -134,6 +141,22 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
+  it('/product/getById/:id Get product by id - Fail', () => {
+    return request(app.getHttpServer())
+      .get('/product/getById/' + randomId)
+      .expect(404);
+  });
+
+  it('/product/getByErpCode/:erpCode Get product by erpCode - Success', async (done) => {
+    return request(app.getHttpServer())
+      .get('/product/getByErpCode/' + productDto.erpCode)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articul).toBeDefined();
+        done();
+      });
+  });
+
   // UPDATE PRODUCTS
 
   it('/product/post Update product - Success', async (done) => {
@@ -157,6 +180,17 @@ describe('Product catalog (e2e)', () => {
       .then(({ body }) => {
         expect(body.stock).toEqual(updateStockDto.stock);
         expect(body.erpCode).toEqual(updateStockDto.erpCode);
+        done();
+      });
+  });
+
+  it('/product/setStock Update negative stock - Fail', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setStock')
+      .send({ ...updateStockDto, stock: -1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toContain(negativeStockMessage);
         done();
       });
   });
@@ -192,6 +226,17 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
+  it('/product/setBasePrice Update negative base price - Fail', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setBasePrice')
+      .send({ ...updateBasePriceDto, price: -1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toContain(negativePriceMessage)
+        done();
+      });
+  });
+
   it('/product/setSpecialPrice Update special price - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setSpecialPrice')
@@ -208,6 +253,25 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
+  it('/product/setSpecialPrice Update negative special price - Fail', async (done) => {
+    return request(app.getHttpServer())
+      .post('/product/setSpecialPrice')
+      .send({ ...updateSpecialPriceDto, price: -1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toContain(negativePriceMessage)
+        done();
+      });
+  });
+
+  // DELETE PRODUCTS
+
+  it('/product/:id Delete product - Success', () => {
+    return request(app.getHttpServer())
+      .delete('/product/' + productId)
+      .expect(200);
+  });
+
   // DELETE CATEGORIES
 
   it('/category/:id Delete child category - Success', () => {
@@ -219,14 +283,6 @@ describe('Product catalog (e2e)', () => {
   it('/category/:id Delete parent category - Success', () => {
     return request(app.getHttpServer())
       .delete('/category/' + parentCategoryId)
-      .expect(200);
-  });
-
-  // DELETE PRODUCTS
-
-  it('/product/:id Delete product - Success', () => {
-    return request(app.getHttpServer())
-      .delete('/product/' + productId)
       .expect(200);
   });
 

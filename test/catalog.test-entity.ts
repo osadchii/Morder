@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 
 export const parentCategoryDto = {
   name: 'Test category',
@@ -40,5 +41,9 @@ export const updateSpecialPriceDto = {
   price: 10000,
   priceName: "TEST SPECIAL PRICE NAME  "
 }
+
+export const randomId = new Types.ObjectId().toHexString();
+export const negativePriceMessage = 'price must not be less than 0.01';
+export const negativeStockMessage = 'stock must not be less than 0';
 
 export const newProductName = 'New product name';
