@@ -1,22 +1,21 @@
-import { CompanyService } from '../../company/company.service';
-import { CategoryService } from '../../category/category.service';
-import { ProductService } from '../../product/product.service';
-import { MarketplaceService } from '../marketplace.service';
-import { MarketplaceCategoryDto } from '../../category/dto/marketplace-category.dto';
+import { CompanyService } from '../company/company.service';
+import { CategoryService } from '../category/category.service';
+import { ProductService } from '../product/product.service';
+import { MarketplaceService } from '../marketplace/marketplace.service';
+import { MarketplaceCategoryDto } from '../category/dto/marketplace-category.dto';
 import { SberMegaMarketFeed, Offer } from './sbermegamarket-feed.model';
-import { Logger } from '@nestjs/common';
-import { CompanyModel } from '../../company/company.model';
+import { CompanyModel } from '../company/company.model';
 import { FeedGenerator } from './feed.generator.interface';
-import { MarketplaceProductDto } from '../../product/dto/marketplace-product.dto';
-import { MarketplaceModel } from '../marketplace.model';
+import { MarketplaceProductDto } from '../product/dto/marketplace-product.dto';
+import { MarketplaceModel } from '../marketplace/marketplace.model';
 import { ConfigService } from '@nestjs/config';
 import { format } from 'date-fns';
 import { path } from 'app-root-path';
 import { ensureDir, writeFile } from 'fs-extra';
+import { ProductImageHelper } from '../product/product.image';
 
 export class SberMegaMarketFeedGenerator implements FeedGenerator {
 
-  private readonly logger = new Logger(SberMegaMarketFeedGenerator.name);
   private readonly goodsFeed: SberMegaMarketFeed = {
     yml_catalog: {
       '@date': format(new Date(), 'yyyy-MM-dd HH:mm'),
@@ -55,8 +54,6 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
 
     const xml = this.serializeFeed();
 
-    this.logger.log(xml);
-
     await this.saveFeedFile(xml);
 
     await this.marketplaceService
@@ -90,34 +87,58 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
   private completeProducts(categories: Map<string, MarketplaceCategoryDto>,
                            products: MarketplaceProductDto[]) {
 
+    const { minimalPrice, warehouseId } = this.marketplace;
     const offerList = this.goodsFeed.yml_catalog.shop.offers.offer;
 
-    products.forEach((item) => {
-      if (item.calculatedPrice != undefined
-        && categories.has(item.categoryCode)) {
+    products.forEach(({
+                        name,
+                        calculatedPrice,
+                        categoryCode,
+                        ignoreRestrictions,
+                        articul,
+                        nullifyStock,
+                        stock,
+                        description,
+                        barcode,
+                        erpCode,
+                        brand,
+                        length,
+                        width,
+                        height,
+                        weight,
+                        countryOfOrigin,
+                        characteristics,
+                        image,
+                      }) => {
+      if (categories.has(categoryCode)) {
 
-        const category = categories.get(item.categoryCode);
+        const { number, blocked } = categories.get(categoryCode);
+        const veryCheaper = minimalPrice > calculatedPrice;
 
-        if (item.nullifyStock
-          || (category.blocked && !item.ignoreRestrictions)) {
-          item.stock = 0;
+        if (nullifyStock
+          || ((blocked || veryCheaper) && !ignoreRestrictions)) {
+          stock = 0;
         }
 
-        const available = item.stock > 0;
+        const available = stock > 0;
 
         const marketplaceProduct: Offer = {
-          '@id': item.articul,
+          '@id': articul,
           '@available': available,
-          name: item.name,
-          categoryId: category.number,
-          price: item.calculatedPrice,
-          description: item.description,
-          barcode: item.barcode,
+          name,
+          categoryId: number,
+          price: calculatedPrice,
+          description,
+          barcode,
+          picture:
+            image
+              ? ProductImageHelper.imageUrlImageName(this.configService, erpCode)
+              : undefined,
           outlets: {
             outlet: [
               {
-                '@id': this.marketplace.warehouseId,
-                '@instock': item.stock,
+                '@id': warehouseId,
+                '@instock': stock,
               },
             ],
           },
@@ -133,14 +154,14 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
           }
         };
 
-        addParam(marketplaceProduct, 'Бренд', item.brand);
-        addParam(marketplaceProduct, 'Weight', item.weight);
-        addParam(marketplaceProduct, 'Length', item.length);
-        addParam(marketplaceProduct, 'Height', item.height);
-        addParam(marketplaceProduct, 'Width', item.width);
-        addParam(marketplaceProduct, 'Страна производитель', item.countryOfOrigin);
+        addParam(marketplaceProduct, 'Бренд', brand);
+        addParam(marketplaceProduct, 'Weight', weight);
+        addParam(marketplaceProduct, 'Length', length);
+        addParam(marketplaceProduct, 'Height', height);
+        addParam(marketplaceProduct, 'Width', width);
+        addParam(marketplaceProduct, 'Страна производитель', countryOfOrigin);
 
-        item.characteristics?.forEach((characteristic) => {
+        characteristics?.forEach((characteristic) => {
           addParam(marketplaceProduct, characteristic.key, characteristic.value);
         });
 

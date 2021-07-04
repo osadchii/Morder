@@ -202,18 +202,17 @@ export class ProductService {
       throw new HttpException(FILE_IS_NOT_IMAGE, 400);
     }
 
-    const product = await this.productModel
-      .findOne({ erpCode },
-        {
-          _id: 1,
-        });
+    const productExists = await this.productModel
+      .exists({
+        erpCode
+      });
 
-    if (!product) {
+    if (!productExists) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
 
     const fileName = ProductImageHelper
-      .fileNameWithExtension(product._id.toHexString(), mimetype);
+      .fileNameWithExtension(erpCode, mimetype);
     const filePath = ProductImageHelper.imagePath(this.configService);
     await ProductImageHelper.saveFile(filePath, fileName, file.buffer);
 
@@ -317,8 +316,8 @@ export class ProductService {
         specialPrices: 0,
         createdAt: 0,
         updatedAt: 0,
-        _id: 0,
         __v: 0,
+        _id: 0
       }).exec();
   }
 

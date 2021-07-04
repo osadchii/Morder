@@ -5,6 +5,8 @@ interface MarketplaceProductCharacteristic {
 
 export interface MarketplaceProductDto {
 
+  erpCode: string;
+
   name: string;
 
   articul: string;
@@ -26,6 +28,8 @@ export interface MarketplaceProductDto {
   stock?: number;
 
   calculatedPrice: number;
+
+  image?: string;
 
   weight?: number;
 

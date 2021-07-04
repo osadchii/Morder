@@ -16,7 +16,7 @@ export class ProductImageHelper {
   }
 
   static imagePath(configService: ConfigService) {
-    return configService.get('IMAGE_DEST');
+    return configService.get('IMAGE_PATH');
   }
 
   static fileNameWithExtension(fileName: string, mimeType: string) {
@@ -29,6 +29,13 @@ export class ProductImageHelper {
 
     await ensureDir(filePath);
     await writeFile(fullFileName, buffer);
+  }
+
+  static imageUrlImageName(configService: ConfigService, imageName: string){
+    const domain = configService.get('DOMAIN');
+    const prefix = configService.get('URL_PREFIX');
+    const imageUrl = configService.get('URL_IMAGE');
+    return `${domain}/${prefix}/${imageUrl}/${imageName}`;
   }
 
 }

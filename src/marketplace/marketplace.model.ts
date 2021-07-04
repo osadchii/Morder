@@ -38,4 +38,7 @@ export class MarketplaceModel extends TimeStamps {
 
   @prop({ lowercase: true, trim: true })
   specialPriceName?: string;
+
+  @prop()
+  minimalPrice: number;
 }

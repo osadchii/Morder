@@ -5,11 +5,15 @@ import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
 import {
   checkStocksArticuls,
-  childCategoryDto, negativePriceMessage, negativeStockMessage,
+  childCategoryDto,
+  negativePriceMessage,
+  negativeStockMessage,
   newProductName,
   parentCategoryDto,
-  productDto, randomId,
-  updateBasePriceDto, updateSpecialPriceDto,
+  productDto,
+  randomId,
+  updateBasePriceDto,
+  updateSpecialPriceDto,
   updateStockDto,
 } from './catalog.test-entity';
 

@@ -31,6 +31,7 @@ export interface Offer {
   price: number;
   barcode: string;
   description?: string;
+  picture?: string;
   outlets: Outlets;
   param: OfferParam[];
 }

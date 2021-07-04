@@ -22,6 +22,10 @@ export class MarketplaceDto {
   @IsNumber()
   warehouseId: number;
 
+  @IsNumber()
+  @Min(0)
+  minimalPrice: number;
+
   @IsString()
   @IsOptional()
   specialPriceName?: string;
