@@ -3,7 +3,7 @@ import { CategoryService } from '../category/category.service';
 import { ProductService } from '../product/product.service';
 import { MarketplaceService } from '../marketplace/marketplace.service';
 import { MarketplaceCategoryDto } from '../category/dto/marketplace-category.dto';
-import { SberMegaMarketFeed, Offer } from './sbermegamarket-feed.model';
+import { Offer, SberMegaMarketFeed } from './sbermegamarket-feed.model';
 import { CompanyModel } from '../company/company.model';
 import { FeedGenerator } from './feed.generator.interface';
 import { MarketplaceProductDto } from '../product/dto/marketplace-product.dto';
@@ -14,9 +14,14 @@ import { path } from 'app-root-path';
 import { ensureDir, writeFile } from 'fs-extra';
 import { ProductImageHelper } from '../product/product.image';
 
+interface CompleteProductsOptions {
+  categories: Map<string, MarketplaceCategoryDto>;
+  products: MarketplaceProductDto[];
+}
+
 export class SberMegaMarketFeedGenerator implements FeedGenerator {
 
-  private readonly goodsFeed: SberMegaMarketFeed = {
+  public readonly goodsFeed: SberMegaMarketFeed = {
     yml_catalog: {
       '@date': format(new Date(), 'yyyy-MM-dd HH:mm'),
       shop: {
@@ -30,6 +35,10 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     },
   };
 
+  private categories: Map<string, MarketplaceCategoryDto>;
+  private products: MarketplaceProductDto[];
+  private company: CompanyModel;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly companyService: CompanyService,
@@ -39,28 +48,31 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     private readonly marketplace: MarketplaceModel) {
   }
 
-  async generateFeed(startDate: Date) {
+  async getData() {
+    this.categories = await this.getMarketplaceCategories();
+    this.products = await this.getMarketplaceProducts();
+    this.company = await this.getMarketplaceCompanyData();
+  }
 
-    const categories = await this
-      .getMarketplaceCategories();
-    const products = await this.productService
-      .getMarketplaceProducts(this.marketplace);
-    const company = await this.companyService
-      .get();
-
-    this.completeCompanyInfo(company);
-    this.completeCategories(categories);
-    this.completeProducts(categories, products);
-
+  async sendData() {
     const xml = this.serializeFeed();
-
     await this.saveFeedFile(xml);
+  }
 
-    await this.marketplaceService
-      .updateSentStocksAndPricesAt(this.marketplace._id, startDate);
+  async generateFeed() {
+    this.completeCompanyInfo(this.company);
+    this.completeCategories(this.categories);
+
+    const complateProductsOptions: CompleteProductsOptions = {
+      categories: this.categories,
+      products: this.products
+    };
+
+    this.completeProducts(complateProductsOptions);
   }
 
   private completeCompanyInfo(company: CompanyModel) {
+
     if (!company) {
       return;
     }
@@ -68,9 +80,11 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     shop.company = company.companyName;
     shop.name = company.shopName;
     shop.url = company.url;
+
   }
 
   private completeCategories(categories: Map<string, MarketplaceCategoryDto>) {
+
     const categoryList = this.goodsFeed
       .yml_catalog.shop.categories.category;
     categories.forEach((category) => {
@@ -84,8 +98,7 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     });
   }
 
-  private completeProducts(categories: Map<string, MarketplaceCategoryDto>,
-                           products: MarketplaceProductDto[]) {
+  private completeProducts({ categories, products }: CompleteProductsOptions) {
 
     const { minimalPrice, warehouseId } = this.marketplace;
     const offerList = this.goodsFeed.yml_catalog.shop.offers.offer;
@@ -168,15 +181,19 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
         offerList.push(marketplaceProduct);
       }
     });
+
   }
 
   private serializeFeed() {
+
     const builder = require('xmlBuilder');
     return builder.create(this.goodsFeed)
       .end({ pretty: true });
+
   }
 
   private async getMarketplaceCategories() {
+
     let categoryNumber = 1;
 
     const categories = await this.categoryService
@@ -191,10 +208,21 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     return categoriesByErpCode;
   }
 
+  private async getMarketplaceProducts() {
+    return await this.productService
+      .getMarketplaceProducts(this.marketplace);
+  }
+
+  private async getMarketplaceCompanyData() {
+    return await this.companyService.get();
+  }
+
   private async saveFeedFile(xmlData: string) {
     const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
+    const feedFullName = `${feedPath}/${this.marketplace._id}.xml`;
+
     await ensureDir(feedPath);
-    await writeFile(`${feedPath}/${this.marketplace._id}.xml`, xmlData);
+    await writeFile(feedFullName, xmlData);
   }
 
 }
