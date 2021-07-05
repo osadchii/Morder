@@ -3,7 +3,6 @@ import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
 import { ProductDto } from './dto/product.dto';
-import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 import { SetStockDto } from './dto/set-stock.dto';
 import { MarketplaceProductDto } from './dto/marketplace-product.dto';
 import { SetPriceDto } from './dto/set-price.dto';
@@ -67,7 +66,7 @@ export class ProductService {
         createdAt: 0,
       },
     }).catch((error) =>
-      ServiceErrorHandler.catchNotUniqueValueError(error));
+      ProductService.catchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
@@ -319,6 +318,22 @@ export class ProductService {
         __v: 0,
         _id: 0
       }).exec();
+  }
+
+  // Error handlers
+
+  static catchNotUniqueValueError(error) {
+    if (error.code != 11000)
+      throw error;
+
+    let messages: string[] = [];
+
+    for (let key in error.keyValue) {
+      if (error.keyValue.hasOwnProperty(key)) {
+        messages.push(`Value \'${error.keyValue[key]}\' is not unique for \'${key}\' field`);
+      }
+    }
+    throw new HttpException(messages.join('\n'), 422);
   }
 
 }

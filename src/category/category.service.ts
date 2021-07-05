@@ -3,7 +3,6 @@ import { InjectModel } from 'nestjs-typegoose';
 import { CategoryModel } from './category.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryDto } from './dto/category.dto';
-import { ServiceErrorHandler } from '../errorHandlers/service-error-handler';
 import { MarketplaceCategoryDto } from './dto/marketplace-category.dto';
 
 @Injectable()
@@ -39,13 +38,11 @@ export class CategoryService {
         updatedAt: 0,
         createdAt: 0,
       },
-    }).catch((error) =>
-      ServiceErrorHandler.catchNotUniqueValueError(error));
+    });
   }
 
   async deleteById(id: string) {
-    return this.categoryModel.findByIdAndDelete(id).exec()
-      .catch((error) => ServiceErrorHandler.catchNotUniqueValueError(error));
+    return this.categoryModel.findByIdAndDelete(id).exec();
   }
 
   async getMarketplaceCategories(marketplaceId: string): Promise<MarketplaceCategoryDto[]> {

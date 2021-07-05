@@ -63,12 +63,12 @@ export class SberMegaMarketFeedGenerator implements FeedGenerator {
     this.completeCompanyInfo(this.company);
     this.completeCategories(this.categories);
 
-    const complateProductsOptions: CompleteProductsOptions = {
+    const completeProductsOptions: CompleteProductsOptions = {
       categories: this.categories,
       products: this.products
     };
 
-    this.completeProducts(complateProductsOptions);
+    this.completeProducts(completeProductsOptions);
   }
 
   private completeCompanyInfo(company: CompanyModel) {
