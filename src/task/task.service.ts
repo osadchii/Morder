@@ -8,6 +8,7 @@ import { MarketplaceService } from '../marketplace/marketplace.service';
 import { MarketplaceModel, MarketplaceType } from '../marketplace/marketplace.model';
 import { FeedGenerator } from '../feed/feed.generator.interface';
 import { ConfigService } from '@nestjs/config';
+import { LoggedFeedGenerator } from '../feed/logged-feed.generator';
 
 @Injectable()
 export class TaskService {
@@ -24,34 +25,31 @@ export class TaskService {
   @Interval(10000)
   async generateFeeds() {
 
+    const startDate = new Date();
     this.logger.log('Started feeds generator');
 
     const marketplaces = await this.marketplaceService.getAll();
 
-    this.logger.log(`${marketplaces.length} marketplaces received`);
-
-    const startDate = new Date();
-
     for (const marketplace of marketplaces) {
       if (!marketplace.active) {
-        this.logger.log(`${marketplace.name} is not active`)
+        this.logger.log(`${marketplace.name} is not active`);
         continue;
       }
       const millisecondsInterval = marketplace.sendStocksAndPriceEveryMinutes * 60000;
       const date = new Date(startDate.getTime() - millisecondsInterval);
 
       if (date < marketplace.sentStocksAndPricesAt) {
-        this.logger.log(`${marketplace.name} feed is fresh`)
         continue;
       }
 
       const generator = this.feedGeneratorByMarketplace(marketplace);
 
       if (generator) {
-        const startGenerate = new Date().getTime();
-        await generator.generateFeed(startDate);
-        const endGenerate = new Date().getTime();
-        this.logger.log(`Feed for ${marketplace.name} was generated. Elapsed ms: ${endGenerate - startGenerate}`);
+        const loggedGenerator = new LoggedFeedGenerator(generator, marketplace.name);
+        await loggedGenerator.getData();
+        await loggedGenerator.generateFeed();
+        await loggedGenerator.sendData();
+        await this.marketplaceService.updateSentStocksAndPricesAt(marketplace._id, startDate);
       }
     }
   }

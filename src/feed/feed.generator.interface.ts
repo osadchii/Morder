@@ -1,3 +1,5 @@
 export interface FeedGenerator {
-  generateFeed(startDate: Date);
+  getData();
+  generateFeed();
+  sendData();
 }
