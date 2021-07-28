@@ -19,11 +19,6 @@ export class ProductImageHelper {
     return configService.get('IMAGE_PATH');
   }
 
-  static fileNameWithExtension(fileName: string, mimeType: string) {
-    const ext = mimeType.split('/')[1];
-    return `${fileName}.${ext}`;
-  }
-
   static async saveFile(filePath: string, fileName: string, buffer: Buffer) {
     const fullFileName = ProductImageHelper.fullFileName(filePath, fileName);
 

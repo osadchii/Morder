@@ -131,7 +131,7 @@ export class ProductController {
   async uploadImage(@Param('erpCode') erpCode: string,
                     @UploadedFile() file: Express.Multer.File) {
     const updatedProduct = this.productService.uploadImage(erpCode, file);
-    if (!updatedProduct){
+    if (!updatedProduct) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
     return updatedProduct;

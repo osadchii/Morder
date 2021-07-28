@@ -210,14 +210,12 @@ export class ProductService {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
 
-    const fileName = ProductImageHelper
-      .fileNameWithExtension(erpCode, mimetype);
     const filePath = ProductImageHelper.imagePath(this.configService);
-    await ProductImageHelper.saveFile(filePath, fileName, file.buffer);
+    await ProductImageHelper.saveFile(filePath, erpCode, file.buffer);
 
     return this.productModel
       .findOneAndUpdate({ erpCode },
-        { image: fileName }, {
+        { image: erpCode }, {
           new: true,
           useFindAndModify: false,
           projection: {

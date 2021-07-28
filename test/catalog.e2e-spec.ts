@@ -33,7 +33,9 @@ describe('Product catalog (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({
+      whitelist: true,
+    }));
     await app.init();
   });
 
