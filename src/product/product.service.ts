@@ -4,10 +4,8 @@ import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
 import { ProductDto } from './dto/product.dto';
 import { SetStockDto } from './dto/set-stock.dto';
-import { MarketplaceProductDto } from './dto/marketplace-product.dto';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
-import { MarketplaceModel } from '../marketplace/marketplace.model';
 import { ConfigService } from '@nestjs/config';
 import { FILE_IS_NOT_IMAGE, IMAGE_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
 import { createReadStream } from 'fs';
@@ -245,77 +243,6 @@ export class ProductService {
     const fullFileName = ProductImageHelper.fullFileName(imagePath, product.image);
 
     return createReadStream(fullFileName);
-  }
-
-  // Marketplace actions
-
-  async getMarketplaceProducts({ _id, specialPriceName }: MarketplaceModel):
-    Promise<MarketplaceProductDto[]> {
-    return this.productModel.aggregate()
-      .match({
-        categoryCode: { $exists: true },
-      })
-      .addFields({
-        nullifyStock: {
-          $function: {
-            body: `function(marketplaceSettings, marketplaceId) {
-                    let nullify = false;
-                    if (marketplaceSettings) {
-                      marketplaceSettings.forEach((item) => {
-                        if (item.marketplaceId == marketplaceId && item.nullifyStock) {
-                          nullify = true;
-                        }
-                      });
-                    }
-                    return nullify;
-                  }`,
-            args: ['$marketplaceSettings', _id],
-            lang: 'js',
-          },
-        },
-        ignoreRestrictions: {
-          $function: {
-            body: `function(marketplaceSettings, marketplaceId) {
-                    let ignore = false;
-                    if (marketplaceSettings) {
-                      marketplaceSettings.forEach((item) => {
-                        if (item.marketplaceId == marketplaceId && item.ignoreRestrictions) {
-                          ignore = true;
-                        }
-                      });
-                    }
-                    return ignore;
-                  }`,
-            args: ['$marketplaceSettings', _id],
-            lang: 'js',
-          },
-        },
-        calculatedPrice: {
-          $function: {
-            body: `function(specialPrices, basePrice, specialPriceName) {
-                    let price = basePrice;
-                    if (specialPrices) {
-                      specialPrices.forEach((row) => {
-                        if (row.priceName === specialPriceName)
-                          price = row.price;
-                      });
-                    }
-                    return price;
-                  }`,
-            args: ['$specialPrices', '$price', specialPriceName],
-            lang: 'js',
-          },
-        },
-      })
-      .project({
-        marketplaceSettings: 0,
-        price: 0,
-        specialPrices: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        __v: 0,
-        _id: 0
-      }).exec();
   }
 
   // Error handlers

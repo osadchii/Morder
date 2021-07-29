@@ -3,7 +3,6 @@ import { InjectModel } from 'nestjs-typegoose';
 import { CategoryModel } from './category.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryDto } from './dto/category.dto';
-import { MarketplaceCategoryDto } from './dto/marketplace-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -43,39 +42,5 @@ export class CategoryService {
 
   async deleteById(id: string) {
     return this.categoryModel.findByIdAndDelete(id).exec();
-  }
-
-  async getMarketplaceCategories(marketplaceId: string): Promise<MarketplaceCategoryDto[]> {
-    return this.categoryModel.aggregate()
-      .sort({
-        _parentCode: 1
-      })
-      .addFields({
-        blocked: {
-          $function: {
-            body: `function (marketplaceSettings, marketplaceId) {
-                    let blocked = false;
-                    if (marketplaceSettings) {
-                      marketplaceSettings.forEach((item) => {
-                        if (item.marketplaceId == marketplaceId && item.blocked) {
-                          blocked = true;
-                        }
-                      })
-                    }
-                    return blocked;
-                  }`,
-            args: ['$marketplaceSettings', marketplaceId],
-            lang: 'js'
-          }
-        }
-      })
-      .project({
-        marketplaceSettings: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        _id: 0,
-        __v: 0
-      })
-      .exec();
   }
 }

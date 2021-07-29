@@ -7,15 +7,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { CompanyModule } from './company/company.module';
-import { MarketplaceModule } from './marketplace/marketplace.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskService } from './task/task.service';
 import { TaskModule } from './task/task.module';
+import { SbermegamarketModule } from './sbermegamarket/sbermegamarket.module';
+import { YandexmarketModule } from './yandexmarket/yandexmarket.module';
+import { OzonModule } from './ozon/ozon.module';
+import { MesoModule } from './meso/meso.module';
+import { WildberriesModule } from './wildberries/wildberries.module';
+import { AliexpressModule } from './aliexpress/aliexpress.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.dev.env'
     }),
     TypegooseModule.forRootAsync({
       imports: [],
@@ -26,8 +32,13 @@ import { TaskModule } from './task/task.module';
     ProductModule,
     CategoryModule,
     CompanyModule,
-    MarketplaceModule,
     TaskModule,
+    SbermegamarketModule,
+    YandexmarketModule,
+    OzonModule,
+    MesoModule,
+    WildberriesModule,
+    AliexpressModule,
   ],
   controllers: [AppController],
   providers: [AppService, TaskService],
