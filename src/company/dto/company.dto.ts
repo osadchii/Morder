@@ -2,7 +2,6 @@ import { IsString, IsUrl, MaxLength } from 'class-validator';
 
 export class CompanyDto {
 
-
   @IsString()
   shopName: string;
 
@@ -18,4 +17,5 @@ export class CompanyDto {
 
   @IsString()
   kpp: string;
+
 }

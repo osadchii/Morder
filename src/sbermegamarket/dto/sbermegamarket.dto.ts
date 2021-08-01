@@ -1,4 +1,4 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SberMegaMarketDto {
 
@@ -10,4 +10,11 @@ export class SberMegaMarketDto {
 
   @IsBoolean()
   nullifyStocks: boolean;
+
+  @IsNumber()
+  feedGenerationInterval: number;
+
+  @IsOptional()
+  @IsString()
+  specialPriceName?: string;
 }

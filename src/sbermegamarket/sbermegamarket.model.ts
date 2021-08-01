@@ -16,4 +16,13 @@ export class SberMegaMarketModel extends TimeStamps {
   @prop()
   nullifyStocks: boolean;
 
+  @prop()
+  specialPriceName?: string;
+
+  @prop()
+  feedGenerationInterval: number;
+
+  @prop()
+  lastFeedGeneration?: Date;
+
 }

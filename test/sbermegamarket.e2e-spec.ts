@@ -7,6 +7,7 @@ import { sberMegaMarketDto } from './sbermegamarket.test-entity';
 
 // Mocking a service using schedule
 jest.mock('../src/task/task.service');
+jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
 
 describe('SberMegaMarket settings (e2e)', () => {
   let app: INestApplication;

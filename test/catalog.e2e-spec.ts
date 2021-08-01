@@ -19,6 +19,7 @@ import {
 
 // Mocking a service using schedule
 jest.mock('../src/task/task.service');
+jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
 
 describe('Product catalog (e2e)', () => {
   let app: INestApplication;
