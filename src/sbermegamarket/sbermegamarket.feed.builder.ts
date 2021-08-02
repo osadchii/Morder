@@ -62,6 +62,7 @@ export class SberMegaMarketFeedBuilder {
     this.completeProductInformation();
 
     return this.feed;
+
   }
 
   private completeCompanyInformation() {
@@ -161,20 +162,21 @@ export class SberMegaMarketFeedBuilder {
       categoryId: id,
       price: product.calculatedPrice,
       barcode: product.barcode,
-      vat: SberMegaMarketFeedBuilder.VatNumberByBat(product.vat),
+      vat: SberMegaMarketFeedBuilder.VatNumberByVat(product.vat),
       description: product.description,
       vendor: product.vendor,
       vendorCode: product.vendorCode,
+      picture: product.picture,
       outlets: new Outlets(outletId, stock),
     };
 
-    SberMegaMarketFeedBuilder.completeOfferProductParams(newOffer, product);
+    SberMegaMarketFeedBuilder.CompleteOfferProductParams(newOffer, product);
 
     offer.push(newOffer);
 
   }
 
-  private static VatNumberByBat(vat: Vat){
+  private static VatNumberByVat(vat: Vat){
     switch (vat){
       case Vat.VAT_20:
         return 1;
@@ -191,7 +193,7 @@ export class SberMegaMarketFeedBuilder {
     }
   }
 
-  private static addParamToTheOffer(offer: Offer, name: string, value: string | number) {
+  private static AddParamToTheOffer(offer: Offer, name: string, value: string | number) {
 
     if (!value){
       return;
@@ -205,18 +207,18 @@ export class SberMegaMarketFeedBuilder {
     param.push(new Param(name, value));
   }
 
-  private static completeOfferProductParams(offer: Offer, product: MarketplaceProductModel) {
+  private static CompleteOfferProductParams(offer: Offer, product: MarketplaceProductModel) {
 
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Бренд', product.brand);
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'СтранаИзготовитель', product.countryOfOrigin);
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Weight', product.weight);
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Height', product.height);
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Length', product.length);
-    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Width', product.width);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'Бренд', product.brand);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'СтранаИзготовитель', product.countryOfOrigin);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'Weight', product.weight);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'Height', product.height);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'Length', product.length);
+    SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, 'Width', product.width);
 
     if (product.characteristics) {
       product.characteristics.forEach((item) => {
-        SberMegaMarketFeedBuilder.addParamToTheOffer(offer, item.name, item.value);
+        SberMegaMarketFeedBuilder.AddParamToTheOffer(offer, item.name, item.value);
       });
     }
 

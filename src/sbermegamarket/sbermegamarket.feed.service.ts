@@ -11,6 +11,10 @@ import { Types } from 'mongoose';
 import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
+import { ConfigService } from '@nestjs/config';
+import { SberMegaMarketFeedModel } from './feed-models/sbermegamarket.feed.model';
+import { path } from 'app-root-path';
+import { ensureDir, writeFile } from 'fs-extra';
 
 @Injectable()
 export class SberMegaMarketFeedService {
@@ -19,7 +23,8 @@ export class SberMegaMarketFeedService {
     @InjectModel(SberMegaMarketModel) private readonly sberMegaMarketModel: ModelType<SberMegaMarketModel>,
     @InjectModel(CompanyModel) private readonly companyModel: ModelType<CompanyModel>,
     @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
-    @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>) {
+    @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>,
+    private readonly configService: ConfigService) {
   }
 
   @Interval(10000)
@@ -47,9 +52,7 @@ export class SberMegaMarketFeedService {
 
     const feed = feedBuilder.build();
 
-    const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feed).end({ pretty: true });
-    console.log(xml);
+    await this.saveFeedFile(feed, sberMegaMarketSettings._id.toHexString());
     await this.setLastFeedGeneration(sberMegaMarketSettings._id);
 
   }
@@ -60,14 +63,25 @@ export class SberMegaMarketFeedService {
 
   private categoryInfo({ _id }: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel);
+      this.categoryModel, this.productModel, this.configService);
     return marketplaceExtension.getCategoryData(_id);
   }
 
   private productInfo({ _id, specialPriceName }: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel);
+      this.categoryModel, this.productModel, this.configService);
     return marketplaceExtension.getProductData(_id, specialPriceName);
+  }
+
+  private async saveFeedFile(feed: SberMegaMarketFeedModel, feedName: string) {
+    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
+    const feedFullName = `${feedPath}/${feedName}.xml`;
+
+    await ensureDir(feedPath);
+
+    const xmlBuilder = require('xmlbuilder');
+    const xml = xmlBuilder.create(feed).end({ pretty: true });
+    await writeFile(feedFullName, xml);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {

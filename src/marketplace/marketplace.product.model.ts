@@ -24,7 +24,7 @@ export class MarketplaceProductModel {
   height?: number;
   length?: number;
   width?: number;
-  image?: string;
+  picture?: string;
   vendor?: string;
   vendorCode?: string;
   description?: string;

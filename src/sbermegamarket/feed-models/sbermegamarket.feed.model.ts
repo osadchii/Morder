@@ -1,7 +1,54 @@
-class Category {
-  '@id': number;
-  '@parentId'?: number;
-  '#text': string;
+
+export class SberMegaMarketFeedModel {
+  yml_catalog: YmlCatalog;
+
+  constructor() {
+    this.yml_catalog = new YmlCatalog();
+  }
+}
+
+class YmlCatalog {
+  shop: Shop;
+  '@date': string;
+
+  constructor() {
+    this.shop = new Shop();
+    this['@date'] = '';
+  }
+}
+
+class Shop {
+  name: string;
+  company: string;
+  url: string;
+  categories: Categories;
+  offers: Offers;
+  'shipment-options': ShipmentOptions;
+
+  constructor() {
+    this.categories = new Categories();
+    this.offers = new Offers();
+  }
+}
+
+export class ShipmentOptions {
+  option: ShipmentOption[];
+
+  constructor(days: number, orderBefore: number) {
+    this.option = [
+      new ShipmentOption(days, orderBefore),
+    ];
+  }
+}
+
+class ShipmentOption {
+  '@days': number;
+  '@order-before': number;
+
+  constructor(days: number, orderBefore: number) {
+    this['@days'] = days;
+    this['@order-before'] = orderBefore;
+  }
 }
 
 class Categories {
@@ -10,6 +57,36 @@ class Categories {
   constructor() {
     this.category = [];
   }
+}
+
+class Category {
+  '@id': number;
+  '@parentId'?: number;
+  '#text': string;
+}
+
+class Offers {
+  offer: Offer[];
+
+  constructor() {
+    this.offer = [];
+  }
+}
+
+export class Offer {
+  '@id': string;
+  '@available': boolean;
+  name: string;
+  price: number;
+  categoryId: number;
+  barcode?: string;
+  vat: number;
+  description?: string;
+  vendor?: string;
+  vendorCode?: string;
+  picture?: string;
+  outlets: Outlets;
+  param?: Param[];
 }
 
 class Outlet {
@@ -39,81 +116,5 @@ export class Param {
   constructor(name: string, value: string | number) {
     this['@name'] = name;
     this['#text'] = value;
-  }
-}
-
-export class Offer {
-  '@id': string;
-  '@available': boolean;
-  name: string;
-  price: number;
-  categoryId: number;
-  barcode?: string;
-  vat: number;
-  description?: string;
-  vendor?: string;
-  vendorCode?: string;
-  picture?: string;
-  outlets: Outlets;
-  param?: Param[];
-}
-
-class Offers {
-  offer: Offer[];
-
-  constructor() {
-    this.offer = [];
-  }
-}
-
-class ShipmentOption {
-  '@days': number;
-  '@order-before': number;
-
-  constructor(days: number, orderBefore: number) {
-    this['@days'] = days;
-    this['@order-before'] = orderBefore;
-  }
-}
-
-export class ShipmentOptions {
-  option: ShipmentOption[];
-
-  constructor(days: number, orderBefore: number) {
-    this.option = [
-      new ShipmentOption(days, orderBefore),
-    ];
-  }
-}
-
-class Shop {
-  name: string;
-  company: string;
-  url: string;
-  categories: Categories;
-  offers: Offers;
-  'shipment-options': ShipmentOptions;
-
-  constructor() {
-    this.categories = new Categories();
-    this.offers = new Offers();
-  }
-}
-
-class YmlCatalog {
-  shop: Shop;
-  '@date': string;
-
-  constructor() {
-    this.shop = new Shop();
-    this['@date'] = '';
-  }
-}
-
-export class SberMegaMarketFeedModel {
-  yml_catalog: YmlCatalog;
-
-  constructor() {
-    this.yml_catalog = new YmlCatalog();
   }
 }

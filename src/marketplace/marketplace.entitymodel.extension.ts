@@ -4,12 +4,15 @@ import { ProductModel } from '../product/product.model';
 import { MarketplaceCategoryModel } from './marketplace.category.model';
 import { MarketplaceProductModel } from './marketplace.product.model';
 import { Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
+import { ProductImageHelper } from '../product/product.image';
 
 export class MarketplaceEntityModelExtension {
 
   constructor(
     private readonly categoryModel: ModelType<CategoryModel>,
-    private readonly productModel: ModelType<ProductModel>) {
+    private readonly productModel: ModelType<ProductModel>,
+    private readonly configService: ConfigService) {
   }
 
   getCategoryData(marketplaceId: Types.ObjectId): Promise<MarketplaceCategoryModel[]> {
@@ -54,9 +57,16 @@ export class MarketplaceEntityModelExtension {
           $function: {
             body: MarketplaceEntityModelExtension.calculatedPriceFunctionText(),
             args: ['$specialPrices', specialPriceName, '$price'],
-            lang: 'js'
+            lang: 'js',
           },
         },
+        picture: {
+          $function: {
+            body: MarketplaceEntityModelExtension.pictureFunctionText(),
+            args: ['$image', ProductImageHelper.imageBaseUrl(this.configService)],
+            lang: 'js'
+          }
+        }
       })
       .project({
         articul: 1,
@@ -72,13 +82,22 @@ export class MarketplaceEntityModelExtension {
         height: 1,
         length: 1,
         width: 1,
-        image: 1,
+        picture: 1,
         vendor: 1,
         vendorCode: 1,
         description: 1,
         concreteMarketplaceSettings: 1,
         characteristics: 1,
       }).exec();
+  }
+
+  private static pictureFunctionText(): string {
+    return `function(image, imageBase) {
+    if (!image) {
+      return undefined;
+    }
+    return imageBase + image;
+  }`;
   }
 
   private static blockedCategoryFunctionText(): string {

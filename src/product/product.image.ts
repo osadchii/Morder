@@ -26,11 +26,16 @@ export class ProductImageHelper {
     await writeFile(fullFileName, buffer);
   }
 
-  static imageUrlImageName(configService: ConfigService, imageName: string){
+  static imageBaseUrl(configService: ConfigService) {
     const domain = configService.get('DOMAIN');
     const prefix = configService.get('URL_PREFIX');
     const imageUrl = configService.get('URL_IMAGE');
-    return `${domain}/${prefix}/${imageUrl}/${imageName}`;
+    return `${domain}/${prefix}/${imageUrl}/`;
+  }
+
+  static imageUrlImageName(configService: ConfigService, imageName: string){
+    const baseUrl = this.imageBaseUrl(configService);
+    return `${baseUrl}${imageName}`;
   }
 
 }
