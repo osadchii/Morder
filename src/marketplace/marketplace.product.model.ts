@@ -1,3 +1,5 @@
+import { Vat } from '../product/product.model';
+
 export class MarketplaceProductCharacteristic {
   name: string;
   value: string;
@@ -15,6 +17,7 @@ export class MarketplaceProductModel {
   stock: number;
   categoryCode: string;
   barcode: string;
+  vat: Vat;
   brand?: string;
   countryOfOrigin?: string;
   weight?: number;
@@ -22,6 +25,8 @@ export class MarketplaceProductModel {
   length?: number;
   width?: number;
   image?: string;
+  vendor?: string;
+  vendorCode?: string;
   description?: string;
   concreteMarketplaceSettings?: MarketplaceSettings;
   characteristics?: MarketplaceProductCharacteristic[];

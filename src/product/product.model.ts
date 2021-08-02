@@ -2,6 +2,15 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
 import { Types } from 'mongoose';
 
+export enum Vat {
+  VAT_20 = 'VAT_20',
+  VAT_20_120 = 'VAT_20_120',
+  VAT_10 = 'VAT_10',
+  VAT_10_110 = 'VAT_10_110',
+  VAT_0 = 'VAT_0',
+  NO_VAT = 'NO_VAT'
+}
+
 class SpecialPrice {
 
   @prop({ lowercase: true, trim: true })
@@ -60,8 +69,11 @@ export class ProductModel extends TimeStamps {
   @prop()
   countryOfOrigin?: string;
 
-  @prop()
+  @prop({ unique: true })
   barcode: string;
+
+  @prop({ enum: Vat })
+  vat: Vat;
 
   @prop()
   stock?: number;
@@ -83,6 +95,12 @@ export class ProductModel extends TimeStamps {
 
   @prop()
   image?: string;
+
+  @prop()
+  vendor?: string;
+
+  @prop()
+  vendorCode?: string;
 
   @prop()
   description?: string;

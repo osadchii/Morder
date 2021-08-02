@@ -1,5 +1,6 @@
-import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Vat } from '../product.model';
 
 class ProductCharacteristicDto {
   @IsString()
@@ -37,6 +38,9 @@ export class ProductDto {
   @IsString()
   barcode: string;
 
+  @IsEnum(Vat)
+  vat: Vat;
+
   @IsOptional()
   @IsNumber()
   weight?: number;
@@ -60,6 +64,14 @@ export class ProductDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  vendor?: string;
+
+  @IsOptional()
+  @IsString()
+  vendorCode?: string;
 
   @IsOptional()
   @IsArray()

@@ -23,10 +23,10 @@ class Outlet {
 }
 
 export class Outlets {
-  outlets: Outlet[];
+  outlet: Outlet[];
 
   constructor(id: number, stock: number) {
-    this.outlets = [
+    this.outlet = [
       new Outlet(id, stock),
     ];
   }
@@ -40,7 +40,6 @@ export class Param {
     this['@name'] = name;
     this['#text'] = value;
   }
-
 }
 
 export class Offer {
@@ -50,7 +49,10 @@ export class Offer {
   price: number;
   categoryId: number;
   barcode?: string;
+  vat: number;
   description?: string;
+  vendor?: string;
+  vendorCode?: string;
   picture?: string;
   outlets: Outlets;
   param?: Param[];

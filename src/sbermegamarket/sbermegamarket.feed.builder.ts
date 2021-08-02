@@ -10,6 +10,7 @@ import {
 import { format } from 'date-fns';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
+import { Vat } from '../product/product.model';
 
 interface ShortCategoryInformation {
   id: number;
@@ -160,7 +161,10 @@ export class SberMegaMarketFeedBuilder {
       categoryId: id,
       price: product.calculatedPrice,
       barcode: product.barcode,
+      vat: SberMegaMarketFeedBuilder.VatNumberByBat(product.vat),
       description: product.description,
+      vendor: product.vendor,
+      vendorCode: product.vendorCode,
       outlets: new Outlets(outletId, stock),
     };
 
@@ -168,6 +172,23 @@ export class SberMegaMarketFeedBuilder {
 
     offer.push(newOffer);
 
+  }
+
+  private static VatNumberByBat(vat: Vat){
+    switch (vat){
+      case Vat.VAT_20:
+        return 1;
+      case Vat.VAT_20_120:
+        return 3;
+      case Vat.VAT_10:
+        return 2;
+      case Vat.VAT_10_110:
+        return 4;
+      case Vat.VAT_0:
+        return 5;
+      case Vat.NO_VAT:
+        return 6;
+    }
   }
 
   private static addParamToTheOffer(offer: Offer, name: string, value: string | number) {
