@@ -10,37 +10,37 @@ export const childCategoryDto = {
   name: 'Child test category',
   erpCode: 'ChildTestCategoryErpCode',
   isDeleted: false,
-  parentCode: parentCategoryDto.erpCode
-}
+  parentCode: parentCategoryDto.erpCode,
+};
 
 export const productDto = {
   name: 'Test product',
-  erpCode: 'testProductErpCode',
+  erpCode: 'testProductErpCode1',
   barcode: 'barcode',
   isDeleted: false,
-  articul: 'test articul',
+  articul: new Types.ObjectId().toHexString(),
   categoryCode: childCategoryDto.erpCode,
 };
 
 export const updateStockDto = {
   erpCode: productDto.erpCode,
-  stock: 10000
-}
+  stock: 10000,
+};
 
 export const checkStocksArticuls = [
-  productDto.articul
-]
+  productDto.articul,
+];
 
 export const updateBasePriceDto = {
   erpCode: productDto.erpCode,
-  price: 10000
-}
+  price: 10000,
+};
 
 export const updateSpecialPriceDto = {
   erpCode: productDto.erpCode,
   price: 10000,
-  priceName: "TEST SPECIAL PRICE NAME  "
-}
+  priceName: 'TEST SPECIAL PRICE NAME  ',
+};
 
 export const randomId = new Types.ObjectId().toHexString();
 export const negativePriceMessage = 'price must not be less than 0.01';

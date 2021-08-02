@@ -8,8 +8,8 @@ import { SberMegaMarketModel } from './sbermegamarket.model';
 import { Interval } from '@nestjs/schedule';
 import { SberMegaMarketFeedBuilder } from './sbermegamarket.feed.builder';
 import { Types } from 'mongoose';
-import { SberMegaMarketFeedCategoryModel } from './sbermegamarket.feed.category.model';
-import { SberMegaMarketFeedProductModel } from './sbermegamarket.feed.product.model';
+import { SberMegaMarketFeedCategoryModel } from './feed-models/sbermegamarket.feed.category.model';
+import { SberMegaMarketFeedProductModel } from './feed-models/sbermegamarket.feed.product.model';
 
 @Injectable()
 export class SberMegaMarketFeedService {
@@ -44,8 +44,10 @@ export class SberMegaMarketFeedService {
     categories.forEach((item) => feedBuilder.addCategory(item));
     products.forEach((item) => feedBuilder.addProduct(item));
 
+    const feed = feedBuilder.build();
+
     const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feedBuilder.build()).end({ pretty: true });
+    const xml = xmlBuilder.create(feed).end({ pretty: true });
     console.log(xml);
     await this.setLastFeedGeneration(sberMegaMarketSettings._id);
 

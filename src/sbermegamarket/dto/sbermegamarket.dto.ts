@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class SberMegaMarketDto {
 
@@ -17,4 +17,11 @@ export class SberMegaMarketDto {
   @IsOptional()
   @IsString()
   specialPriceName?: string;
+
+  @IsNumber()
+  @Min(0)
+  minimalPrice: number;
+
+  @IsNumber()
+  outletId: number;
 }

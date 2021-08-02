@@ -12,13 +12,35 @@ class Categories {
   }
 }
 
-class Offer {
+class Outlet {
+  '@id': number;
+  '@instock': number;
+
+  constructor(id: number, stock: number) {
+    this['@id'] = id;
+    this['@instock'] = stock;
+  }
+}
+
+export class Outlets {
+  outlets: Outlet[];
+
+  constructor(id: number, stock: number) {
+    this.outlets = [
+      new Outlet(id, stock),
+    ];
+  }
+}
+
+export class Offer {
   '@id': string;
   '@available': boolean;
   name: string;
   price: number;
   categoryId: number;
+  barcode?: string;
   picture?: string;
+  outlets: Outlets;
 }
 
 class Offers {
