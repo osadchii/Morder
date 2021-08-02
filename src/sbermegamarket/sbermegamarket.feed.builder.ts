@@ -1,6 +1,12 @@
 import { SberMegaMarketDto } from './dto/sbermegamarket.dto';
 import { CompanyModel } from '../company/company.model';
-import { Offer, Outlets, SberMegaMarketFeedModel, ShipmentOptions } from './feed-models/sbermegamarket.feed.model';
+import {
+  Offer,
+  Outlets,
+  Param,
+  SberMegaMarketFeedModel,
+  ShipmentOptions,
+} from './feed-models/sbermegamarket.feed.model';
 import { format } from 'date-fns';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
@@ -99,10 +105,10 @@ export class SberMegaMarketFeedBuilder {
 
   private completeProductInformation() {
     this.products.forEach((item) =>
-      this.addProductToFeed(item));
+      this.addProductToTheFeed(item));
   }
 
-  private addProductToFeed(product: MarketplaceProductModel) {
+  private addProductToTheFeed(product: MarketplaceProductModel) {
 
     const { offer } = this.feed.yml_catalog.shop.offers;
 
@@ -154,10 +160,44 @@ export class SberMegaMarketFeedBuilder {
       categoryId: id,
       price: product.calculatedPrice,
       barcode: product.barcode,
+      description: product.description,
       outlets: new Outlets(outletId, stock),
     };
 
+    SberMegaMarketFeedBuilder.completeOfferProductParams(newOffer, product);
+
     offer.push(newOffer);
+
+  }
+
+  private static addParamToTheOffer(offer: Offer, name: string, value: string | number) {
+
+    if (!value){
+      return;
+    }
+
+    if (!offer.param) {
+      offer.param = [];
+    }
+
+    const { param } = offer;
+    param.push(new Param(name, value));
+  }
+
+  private static completeOfferProductParams(offer: Offer, product: MarketplaceProductModel) {
+
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Бренд', product.brand);
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'СтранаИзготовитель', product.countryOfOrigin);
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Weight', product.weight);
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Height', product.height);
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Length', product.length);
+    SberMegaMarketFeedBuilder.addParamToTheOffer(offer, 'Width', product.width);
+
+    if (product.characteristics) {
+      product.characteristics.forEach((item) => {
+        SberMegaMarketFeedBuilder.addParamToTheOffer(offer, item.name, item.value);
+      });
+    }
 
   }
 }

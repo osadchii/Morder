@@ -1,4 +1,4 @@
-class MarketplaceProductCharacteristic {
+export class MarketplaceProductCharacteristic {
   name: string;
   value: string;
 }

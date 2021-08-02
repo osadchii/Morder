@@ -32,6 +32,17 @@ export class Outlets {
   }
 }
 
+export class Param {
+  '@name': string;
+  '#text': string | number;
+
+  constructor(name: string, value: string | number) {
+    this['@name'] = name;
+    this['#text'] = value;
+  }
+
+}
+
 export class Offer {
   '@id': string;
   '@available': boolean;
@@ -39,8 +50,10 @@ export class Offer {
   price: number;
   categoryId: number;
   barcode?: string;
+  description?: string;
   picture?: string;
   outlets: Outlets;
+  param?: Param[];
 }
 
 class Offers {
