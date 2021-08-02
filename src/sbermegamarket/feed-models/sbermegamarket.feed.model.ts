@@ -51,12 +51,33 @@ class Offers {
   }
 }
 
+class ShipmentOption {
+  '@days': number;
+  '@order-before': number;
+
+  constructor(days: number, orderBefore: number) {
+    this['@days'] = days;
+    this['@order-before'] = orderBefore;
+  }
+}
+
+export class ShipmentOptions {
+  option: ShipmentOption[];
+
+  constructor(days: number, orderBefore: number) {
+    this.option = [
+      new ShipmentOption(days, orderBefore),
+    ];
+  }
+}
+
 class Shop {
   name: string;
   company: string;
   url: string;
   categories: Categories;
   offers: Offers;
+  'shipment-options': ShipmentOptions;
 
   constructor() {
     this.categories = new Categories();

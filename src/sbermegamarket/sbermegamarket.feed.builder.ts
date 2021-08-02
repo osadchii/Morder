@@ -1,6 +1,6 @@
 import { SberMegaMarketDto } from './dto/sbermegamarket.dto';
 import { CompanyModel } from '../company/company.model';
-import { Offer, Outlets, SberMegaMarketFeedModel } from './feed-models/sbermegamarket.feed.model';
+import { Offer, Outlets, SberMegaMarketFeedModel, ShipmentOptions } from './feed-models/sbermegamarket.feed.model';
 import { format } from 'date-fns';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
@@ -18,7 +18,13 @@ export class SberMegaMarketFeedBuilder {
   private readonly feed: SberMegaMarketFeedModel = new SberMegaMarketFeedModel();
 
   constructor(private readonly settings: SberMegaMarketDto) {
-    this.feed.yml_catalog['@date'] = format(new Date(), 'yyyy-MM-dd HH:mm');
+
+    const { yml_catalog } = this.feed;
+    const { shippingDays, orderBefore } = this.settings;
+
+    yml_catalog['@date'] = format(new Date(), 'yyyy-MM-dd HH:mm');
+    yml_catalog.shop['shipment-options'] = new ShipmentOptions(shippingDays, orderBefore);
+
   }
 
   setCompany(company: CompanyModel) {
@@ -108,22 +114,31 @@ export class SberMegaMarketFeedBuilder {
       return;
     }
 
-    let available = true;
-    let ignoreRestrictions = false;
+    const { id, blocked } = this.categoryNumberMap.get(product.categoryCode);
     const { minimalPrice, outletId } = this.settings;
 
-    if (product.concreteMarketplaceSettings) {
-      ignoreRestrictions = product.concreteMarketplaceSettings.ignoreRestrictions;
-    }
+    let available = true;
+    let ignoreRestrictions = false;
+    let nullifyStocks = false;
 
-    const { id, blocked } = this.categoryNumberMap.get(product.categoryCode);
+    if (product.concreteMarketplaceSettings) {
+      const marketplaceSettings = product.concreteMarketplaceSettings;
+      ignoreRestrictions = marketplaceSettings.ignoreRestrictions;
+      nullifyStocks = marketplaceSettings.nullifyStock;
+    }
 
     if (blocked && !ignoreRestrictions) {
       available = false;
     }
 
-    if (minimalPrice > 0 && minimalPrice > product.calculatedPrice && !ignoreRestrictions) {
+    if (minimalPrice > 0
+      && minimalPrice > product.calculatedPrice
+      && !ignoreRestrictions) {
       available = false;
+    }
+
+    if (nullifyStocks) {
+      product.stock = 0;
     }
 
     if (product.stock === 0) {
@@ -132,8 +147,6 @@ export class SberMegaMarketFeedBuilder {
 
     const stock = available ? product.stock : 0;
 
-    const outlets = new Outlets(outletId, stock);
-
     const newOffer: Offer = {
       '@id': product.articul,
       '@available': available,
@@ -141,7 +154,7 @@ export class SberMegaMarketFeedBuilder {
       categoryId: id,
       price: product.calculatedPrice,
       barcode: product.barcode,
-      outlets: outlets,
+      outlets: new Outlets(outletId, stock),
     };
 
     offer.push(newOffer);

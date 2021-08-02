@@ -31,4 +31,10 @@ export class SberMegaMarketModel extends TimeStamps {
   @prop()
   lastFeedGeneration?: Date;
 
+  @prop()
+  orderBefore: number;
+
+  @prop()
+  shippingDays: number;
+
 }

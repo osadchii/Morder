@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class SberMegaMarketDto {
 
@@ -24,4 +24,12 @@ export class SberMegaMarketDto {
 
   @IsNumber()
   outletId: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(24)
+  orderBefore:number;
+
+  @IsNumber()
+  shippingDays: number;
 }
