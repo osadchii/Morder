@@ -8,8 +8,9 @@ import { SberMegaMarketModel } from './sbermegamarket.model';
 import { Interval } from '@nestjs/schedule';
 import { SberMegaMarketFeedBuilder } from './sbermegamarket.feed.builder';
 import { Types } from 'mongoose';
-import { SberMegaMarketFeedCategoryModel } from './feed-models/sbermegamarket.feed.category.model';
-import { SberMegaMarketFeedProductModel } from './feed-models/sbermegamarket.feed.product.model';
+import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
+import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
+import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 
 @Injectable()
 export class SberMegaMarketFeedService {
@@ -57,70 +58,16 @@ export class SberMegaMarketFeedService {
     return this.companyModel.findOne().exec();
   }
 
-  private categoryInfo({ _id }: SberMegaMarketModel): Promise<SberMegaMarketFeedCategoryModel[]> {
-    return this.categoryModel
-      .aggregate()
-      .match({
-        isDeleted: false,
-      })
-      .addFields({
-        blocked: {
-          $function: {
-            body: SberMegaMarketFeedService.blockedCategoryFunctionText(),
-            args: ['$marketplaceSettings', _id],
-            lang: 'js',
-          },
-        },
-      })
-      .project({
-        name: 1,
-        erpCode: 1,
-        parentCode: 1,
-        blocked: 1,
-      }).exec();
+  private categoryInfo({ _id }: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
+    const marketplaceExtension = new MarketplaceEntityModelExtension(
+      this.categoryModel, this.productModel);
+    return marketplaceExtension.getCategoryData(_id);
   }
 
-  private productInfo({ _id, specialPriceName }: SberMegaMarketModel): Promise<SberMegaMarketFeedProductModel[]> {
-    return this.productModel
-      .aggregate()
-      .match({
-        isDeleted: false,
-        categoryCode: { $exists: true },
-      })
-      .addFields({
-        sberMegaMarketSettings: {
-          $function: {
-            body: SberMegaMarketFeedService.sberMegaMarketFunctionText(),
-            args: ['$marketplaceSettings', _id],
-            lang: 'js',
-          },
-        },
-        calculatedPrice: {
-          $function: {
-            body: SberMegaMarketFeedService.calculatedPriceFunctionText(),
-            args: ['$specialPrices', specialPriceName, '$price'],
-            lang: 'js'
-          },
-        },
-      })
-      .project({
-        articul: 1,
-        name: 1,
-        calculatedPrice: 1,
-        stock: 1,
-        categoryCode: 1,
-        barcode: 1,
-        brand: 1,
-        countryOfOrigin: 1,
-        weight: 1,
-        height: 1,
-        length: 1,
-        width: 1,
-        image: 1,
-        description: 1,
-        sberMegaMarketSettings: 1,
-        characteristics: 1,
-      }).exec();
+  private productInfo({ _id, specialPriceName }: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
+    const marketplaceExtension = new MarketplaceEntityModelExtension(
+      this.categoryModel, this.productModel);
+    return marketplaceExtension.getProductData(_id, specialPriceName);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {
@@ -156,49 +103,4 @@ export class SberMegaMarketFeedService {
 
   }
 
-  private static blockedCategoryFunctionText(): string {
-    return `function(marketplaceSettings, settingsId) {
-    if (!marketplaceSettings) {
-      return false;
-    }
-    for (const settings of marketplaceSettings) {
-      if (settings.marketplaceId == settingsId
-        && settings.blocked) {
-        return true;
-      }
-    }
-    return false;
-  }`;
-  }
-
-  private static calculatedPriceFunctionText(): string {
-    return `function(specialPrices, specialPriceName, defaultPrice) {
-    let price = defaultPrice;
-    if (specialPrices) {
-      for (const specialPrice of specialPrices) {
-        if (specialPrice.priceName == specialPriceName) {
-          price = specialPrice.price;
-          break;
-        }
-      }
-    }
-    return price;
-  }`;
-  }
-
-  private static sberMegaMarketFunctionText(): string {
-    return `function(marketplaceSettings, settingsId) {
-    if (marketplaceSettings) {
-      for (const settings of marketplaceSettings) {
-        if (settings.marketplaceId == settingsId) {
-          return {
-            nullifyStock: settings.nullifyStock,
-            ignoreRestrictions: settings.ignoreRestrictions,
-          };
-        }
-      }
-    }
-    return undefined;
-  }`;
-  }
 }

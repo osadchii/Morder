@@ -1,4 +1,4 @@
-export class SberMegaMarketFeedCategoryModel {
+export class MarketplaceCategoryModel {
   erpCode: string;
   name: string;
   parentCode?: string;

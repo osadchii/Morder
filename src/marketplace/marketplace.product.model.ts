@@ -1,14 +1,14 @@
-class SberMegaMarketFeedProductCharacteristic {
+class MarketplaceProductCharacteristic {
   name: string;
   value: string;
 }
 
-class SberMegaMarketSettings {
+class MarketplaceSettings {
   nullifyStock: boolean;
   ignoreRestrictions: boolean;
 }
 
-export class SberMegaMarketFeedProductModel {
+export class MarketplaceProductModel {
   articul: string;
   name: string;
   calculatedPrice: number;
@@ -23,6 +23,6 @@ export class SberMegaMarketFeedProductModel {
   width?: number;
   image?: string;
   description?: string;
-  sberMegaMarketSettings?: SberMegaMarketSettings;
-  characteristics?: SberMegaMarketFeedProductCharacteristic[];
+  concreteMarketplaceSettings?: MarketplaceSettings;
+  characteristics?: MarketplaceProductCharacteristic[];
 }

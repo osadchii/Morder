@@ -2,8 +2,8 @@ import { SberMegaMarketDto } from './dto/sbermegamarket.dto';
 import { CompanyModel } from '../company/company.model';
 import { Offer, Outlets, SberMegaMarketFeedModel } from './feed-models/sbermegamarket.feed.model';
 import { format } from 'date-fns';
-import { SberMegaMarketFeedCategoryModel } from './feed-models/sbermegamarket.feed.category.model';
-import { SberMegaMarketFeedProductModel } from './feed-models/sbermegamarket.feed.product.model';
+import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
+import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
 
 interface ShortCategoryInformation {
   id: number;
@@ -12,8 +12,8 @@ interface ShortCategoryInformation {
 
 export class SberMegaMarketFeedBuilder {
   private company: CompanyModel;
-  private categories: SberMegaMarketFeedCategoryModel[] = [];
-  private products: SberMegaMarketFeedProductModel[] = [];
+  private categories: MarketplaceCategoryModel[] = [];
+  private products: MarketplaceProductModel[] = [];
   private categoryNumberMap = new Map<string, ShortCategoryInformation>();
   private readonly feed: SberMegaMarketFeedModel = new SberMegaMarketFeedModel();
 
@@ -25,11 +25,11 @@ export class SberMegaMarketFeedBuilder {
     this.company = company;
   }
 
-  addProduct(product: SberMegaMarketFeedProductModel) {
+  addProduct(product: MarketplaceProductModel) {
     this.products.push(product);
   }
 
-  addCategory(category: SberMegaMarketFeedCategoryModel) {
+  addCategory(category: MarketplaceCategoryModel) {
     this.categories.push(category);
 
     const categoryNumber = this.categoryNumberMap.size + 1;
@@ -96,7 +96,7 @@ export class SberMegaMarketFeedBuilder {
       this.addProductToFeed(item));
   }
 
-  private addProductToFeed(product: SberMegaMarketFeedProductModel) {
+  private addProductToFeed(product: MarketplaceProductModel) {
 
     const { offer } = this.feed.yml_catalog.shop.offers;
 
@@ -112,8 +112,8 @@ export class SberMegaMarketFeedBuilder {
     let ignoreRestrictions = false;
     const { minimalPrice, outletId } = this.settings;
 
-    if (product.sberMegaMarketSettings) {
-      ignoreRestrictions = product.sberMegaMarketSettings.ignoreRestrictions;
+    if (product.concreteMarketplaceSettings) {
+      ignoreRestrictions = product.concreteMarketplaceSettings.ignoreRestrictions;
     }
 
     const { id, blocked } = this.categoryNumberMap.get(product.categoryCode);
