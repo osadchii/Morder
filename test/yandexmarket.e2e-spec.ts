@@ -6,9 +6,8 @@ import { disconnect } from 'mongoose';
 import { yandexMarketDto } from './yandexmarket.test-entity';
 
 // Mocking a service using schedule
-jest.mock('../src/task/task.service');
 jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
-//jest.mock('../src/yandexmarket/yandexmarket.feed.service');
+jest.mock('../src/yandexmarket/yandexmarket.feed.service');
 
 describe('YandexMarket settings (e2e)', () => {
   let app: INestApplication;

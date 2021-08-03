@@ -8,8 +8,6 @@ import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { CompanyModule } from './company/company.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { TaskService } from './task/task.service';
-import { TaskModule } from './task/task.module';
 import { SberMegaMarketModule } from './sbermegamarket/sbermegamarket.module';
 import { YandexMarketModule } from './yandexmarket/yandexmarket.module';
 import { OzonModule } from './ozon/ozon.module';
@@ -32,7 +30,6 @@ import { AliexpressModule } from './aliexpress/aliexpress.module';
     ProductModule,
     CategoryModule,
     CompanyModule,
-    TaskModule,
     SberMegaMarketModule,
     YandexMarketModule,
     OzonModule,
@@ -41,7 +38,7 @@ import { AliexpressModule } from './aliexpress/aliexpress.module';
     AliexpressModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TaskService],
+  providers: [AppService],
 })
 export class AppModule {
 }

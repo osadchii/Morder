@@ -18,8 +18,8 @@ import {
 } from './catalog.test-entity';
 
 // Mocking a service using schedule
-jest.mock('../src/task/task.service');
 jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
+jest.mock('../src/yandexmarket/yandexmarket.feed.service');
 
 describe('Product catalog (e2e)', () => {
   let app: INestApplication;

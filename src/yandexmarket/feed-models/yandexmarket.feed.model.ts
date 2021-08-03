@@ -58,6 +58,7 @@ export class Offer {
   categoryId: number;
   vat: string;
   weight: number;
+  currencyId: string;
   availability: Availability;
   barcode?: string;
   description?: string;

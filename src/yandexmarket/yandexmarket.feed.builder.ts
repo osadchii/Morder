@@ -18,7 +18,6 @@ export class YandexMarketFeedBuilder {
   constructor(private readonly settings: YandexMarketDto) {
 
     const { yml_catalog } = this.feed;
-
     yml_catalog['@date'] = format(new Date(), 'yyyy-MM-dd HH:mm');
 
   }
@@ -128,6 +127,10 @@ export class YandexMarketFeedBuilder {
     }
 
     const stock = available ? product.stock : 0;
+    const weight = this.productWeight(product);
+    const dimensions = this.productDimensions(product);
+    const vendorCode = this.productVendorCode(product);
+    const availability = available ? Availability.ACTIVE : Availability.INACTIVE;
 
     const newOffer: Offer = {
       '@id': product.articul,
@@ -141,14 +144,55 @@ export class YandexMarketFeedBuilder {
       description: product.description,
       manufacturer: product.vendor,
       vendor: product.vendor,
-      vendorCode: product.vendorCode,
+      vendorCode: vendorCode,
       url: product.picture,
-      availability: available ? Availability.ACTIVE : Availability.INACTIVE,
+      currencyId: 'RUR',
       country_of_origin: product.countryOfOrigin,
-      weight: product.weight,
+      weight: weight,
+      dimensions: dimensions,
+      availability: availability,
     };
 
     offer.push(newOffer);
+
+  }
+
+  // If we don't have a product dimensions or weight, we can set a default values
+  // for the yandex market settings.
+  private productWeight(product: MarketplaceProductModel): number | undefined {
+
+    if (product.weight)
+      return product.weight;
+
+    if (this.settings.defaultWeight)
+      return this.settings.defaultWeight;
+
+    return undefined;
+
+  }
+
+  private productDimensions(product: MarketplaceProductModel): string | undefined {
+
+    const length = product.length ? product.length : this.settings.defaultLength;
+    const height = product.height ? product.height : this.settings.defaultHeight;
+    const width = product.width ? product.width : this.settings.defaultWidth;
+
+    if (length && height && width) {
+      return `${length}/${height}/${width}`;
+    }
+    return undefined;
+
+  }
+
+  private productVendorCode(product: MarketplaceProductModel): string | undefined {
+
+    if (product.vendorCode)
+      return product.vendorCode;
+
+    if (this.settings.defaultVendorCode)
+      return this.settings.defaultVendorCode;
+
+    return undefined;
 
   }
 }

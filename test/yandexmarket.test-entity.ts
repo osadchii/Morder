@@ -6,4 +6,8 @@ export const yandexMarketDto: YandexMarketDto = {
   nullifyStocks: false,
   feedGenerationInterval: 1,
   minimalPrice: 100,
+  defaultHeight: 10,
+  defaultLength: 10,
+  defaultWidth: 10,
+  defaultWeight: 1
 };

@@ -27,6 +27,18 @@ export class YandexMarketModel extends TimeStamps {
   @prop()
   lastFeedGeneration?: Date;
 
+  @prop()
+  defaultHeight?: number;
 
+  @prop()
+  defaultLength?: number;
 
+  @prop()
+  defaultWidth?: number;
+
+  @prop()
+  defaultWeight?: number;
+
+  @prop()
+  defaultVendorCode?: string;
 }

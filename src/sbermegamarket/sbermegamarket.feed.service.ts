@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { CompanyModel } from '../company/company.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
@@ -19,6 +19,8 @@ import { ensureDir, writeFile } from 'fs-extra';
 @Injectable()
 export class SberMegaMarketFeedService {
 
+  private readonly logger = new Logger(SberMegaMarketFeedService.name);
+
   constructor(
     @InjectModel(SberMegaMarketModel) private readonly sberMegaMarketModel: ModelType<SberMegaMarketModel>,
     @InjectModel(CompanyModel) private readonly companyModel: ModelType<CompanyModel>,
@@ -38,13 +40,18 @@ export class SberMegaMarketFeedService {
 
   }
 
-  private async generateFeed(sberMegaMarketSettings: SberMegaMarketModel) {
+  private async generateFeed(marketModel: SberMegaMarketModel) {
+
+    this.logger.log(`Start of ${marketModel.name} feed generation.`);
+    this.logger.log(`Receiving ${marketModel.name} data.`);
 
     const company = await this.companyInfo();
-    const categories = await this.categoryInfo(sberMegaMarketSettings);
-    const products = await this.productInfo(sberMegaMarketSettings);
+    const categories = await this.categoryInfo(marketModel);
+    const products = await this.productInfo(marketModel);
 
-    const feedBuilder = new SberMegaMarketFeedBuilder(sberMegaMarketSettings);
+    this.logger.log(`Building ${marketModel.name} feed.`);
+
+    const feedBuilder = new SberMegaMarketFeedBuilder(marketModel);
 
     feedBuilder.setCompany(company);
     categories.forEach((item) => feedBuilder.addCategory(item));
@@ -52,8 +59,12 @@ export class SberMegaMarketFeedService {
 
     const feed = feedBuilder.build();
 
-    await this.saveFeedFile(feed, sberMegaMarketSettings._id.toHexString());
-    await this.setLastFeedGeneration(sberMegaMarketSettings._id);
+    this.logger.log(`Saving ${marketModel.name} feed file.`);
+
+    await this.saveFeedFile(feed, marketModel._id.toHexString());
+    await this.setLastFeedGeneration(marketModel._id);
+
+    this.logger.log(`End of ${marketModel.name} feed generation.`);
 
   }
 
@@ -73,9 +84,9 @@ export class SberMegaMarketFeedService {
     return marketplaceExtension.getProductData(_id, specialPriceName);
   }
 
-  private async saveFeedFile(feed: SberMegaMarketFeedModel, feedName: string) {
+  private async saveFeedFile(feed: SberMegaMarketFeedModel, fileName: string) {
     const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
-    const feedFullName = `${feedPath}/${feedName}.xml`;
+    const feedFullName = `${feedPath}/${fileName}.xml`;
 
     await ensureDir(feedPath);
 

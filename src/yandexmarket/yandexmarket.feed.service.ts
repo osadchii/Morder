@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryModel } from '../category/category.model';
@@ -18,6 +18,8 @@ import { YandexMarketFeedModel } from './feed-models/yandexmarket.feed.model';
 @Injectable()
 export class YandexMarketFeedService {
 
+  private readonly logger = new Logger(YandexMarketFeedService.name);
+
   constructor(
     @InjectModel(YandexMarketModel) private readonly yandexMarketModel: ModelType<YandexMarketModel>,
     @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
@@ -36,20 +38,30 @@ export class YandexMarketFeedService {
 
   }
 
-  private async generateFeed(yandexMarketModel: YandexMarketModel) {
+  private async generateFeed(marketModel: YandexMarketModel) {
 
-    const categories = await this.categoryInfo(yandexMarketModel);
-    const products = await this.productInfo(yandexMarketModel);
+    this.logger.log(`Start of ${marketModel.name} feed generation.`);
+    this.logger.log(`Receiving ${marketModel.name} data.`);
 
-    const feedBuilder = new YandexMarketFeedBuilder(yandexMarketModel);
+    const categories = await this.categoryInfo(marketModel);
+    const products = await this.productInfo(marketModel);
+
+    this.logger.log(`Building ${marketModel.name} feed.`);
+
+    const feedBuilder = new YandexMarketFeedBuilder(marketModel);
 
     categories.forEach((item) => feedBuilder.addCategory(item));
     products.forEach((item) => feedBuilder.addProduct(item));
 
     const feed = feedBuilder.build();
 
-    await this.saveFeedFile(feed, yandexMarketModel._id.toHexString());
-    await this.setLastFeedGeneration(yandexMarketModel._id);
+    this.logger.log(`Saving ${marketModel.name} feed file.`);
+
+    await this.saveFeedFile(feed, marketModel._id.toHexString());
+
+    await this.setLastFeedGeneration(marketModel._id);
+
+    this.logger.log(`End of ${marketModel.name} feed generation.`);
 
   }
 
