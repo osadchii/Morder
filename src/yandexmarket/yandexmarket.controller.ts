@@ -1,22 +1,22 @@
 import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
-import { SberMegaMarketService } from './sbermegamarket.service';
-import { SberMegaMarketDto } from './dto/sbermegamarket.dto';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
+import { YandexMarketService } from './yandexmarket.service';
+import { YandexMarketDto } from './dto/yandexmarket.dto';
 import { MARKETPLACE_NOT_FOUND } from '../marketplace/marketplace.constants';
 
-@Controller('sbermegamarket')
-export class SberMegaMarketController {
-  constructor(private readonly sberMegaMarketService: SberMegaMarketService) {
+@Controller('yandexmarket')
+export class YandexMarketController {
+  constructor(private readonly yandexMarketService: YandexMarketService) {
   }
 
   @Get('get')
   async getAll() {
-    return this.sberMegaMarketService.get();
+    return this.yandexMarketService.get();
   }
 
   @Get('get/:id')
   async getById(@Param('id', IdValidationPipe) id: string) {
-    const market = await this.sberMegaMarketService.getById(id);
+    const market = await this.yandexMarketService.getById(id);
 
     if (!market) {
       throw new NotFoundException(MARKETPLACE_NOT_FOUND);
@@ -26,15 +26,15 @@ export class SberMegaMarketController {
   }
 
   @Post('create')
-  async create(@Body() dto: SberMegaMarketDto) {
-    return this.sberMegaMarketService.create(dto);
+  async create(@Body() dto: YandexMarketDto) {
+    return this.yandexMarketService.create(dto);
   }
 
   @Post('update/:id')
   @HttpCode(200)
   async update(@Param('id', IdValidationPipe) id: string,
-               @Body() dto: SberMegaMarketDto) {
-    const updatedMarket = await this.sberMegaMarketService.update(id, dto);
+               @Body() dto: YandexMarketDto) {
+    const updatedMarket = await this.yandexMarketService.update(id, dto);
 
     if (!updatedMarket) {
       throw new NotFoundException(MARKETPLACE_NOT_FOUND);
@@ -45,7 +45,7 @@ export class SberMegaMarketController {
 
   @Delete('delete/:id')
   async deleteById(@Param('id', IdValidationPipe) id: string) {
-    const deletedMarket = await this.sberMegaMarketService.deleteById(id);
+    const deletedMarket = await this.yandexMarketService.deleteById(id);
 
     if (!deletedMarket) {
       throw new NotFoundException(MARKETPLACE_NOT_FOUND);

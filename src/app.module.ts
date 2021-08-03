@@ -11,7 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskService } from './task/task.service';
 import { TaskModule } from './task/task.module';
 import { SberMegaMarketModule } from './sbermegamarket/sbermegamarket.module';
-import { YandexMarketModule } from './yandexmarket/yandexmarketmodule';
+import { YandexMarketModule } from './yandexmarket/yandexmarket.module';
 import { OzonModule } from './ozon/ozon.module';
 import { MesoModule } from './meso/meso.module';
 import { WildberriesModule } from './wildberries/wildberries.module';
