@@ -1,6 +1,6 @@
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Vat } from '../product.model';
+import { ProductType, Vat } from '../product.model';
 
 class ProductCharacteristicDto {
   @IsString()
@@ -40,6 +40,9 @@ export class ProductDto {
 
   @IsEnum(Vat)
   vat: Vat;
+
+  @IsEnum(ProductType)
+  productType: ProductType;
 
   @IsOptional()
   @IsNumber()

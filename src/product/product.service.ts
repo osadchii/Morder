@@ -159,7 +159,6 @@ export class ProductService {
 
     let updated = false;
     for (let row of product.specialPrices) {
-      //const priceName = row.priceName.trim().toLowerCase();
       if (row.priceName === dtoPriceName) {
         row.price = price;
         updated = true;
@@ -201,7 +200,7 @@ export class ProductService {
 
     const productExists = await this.productModel
       .exists({
-        erpCode
+        erpCode,
       });
 
     if (!productExists) {

@@ -65,16 +65,16 @@ export class YandexMarketFeedService {
 
   }
 
-  private categoryInfo({ _id }: YandexMarketModel): Promise<MarketplaceCategoryModel[]> {
+  private categoryInfo(marketplace: YandexMarketModel): Promise<MarketplaceCategoryModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getCategoryData(_id);
+    return marketplaceExtension.getCategoryData(marketplace);
   }
 
-  private productInfo({ _id, specialPriceName }: YandexMarketModel): Promise<MarketplaceProductModel[]> {
+  private productInfo(marketplace: YandexMarketModel): Promise<MarketplaceProductModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getProductData(_id, specialPriceName);
+    return marketplaceExtension.getProductData(marketplace);
   }
 
   private async saveFeedFile(feed: YandexMarketFeedModel, feedName: string) {

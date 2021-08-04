@@ -18,7 +18,8 @@ export const productDto = {
   erpCode: 'testProductErpCode1',
   barcode: 'barcode',
   isDeleted: false,
-  vat: "VAT_20",
+  vat: 'VAT_20',
+  productType: 'Piece',
   articul: new Types.ObjectId().toHexString(),
   categoryCode: childCategoryDto.erpCode,
 };

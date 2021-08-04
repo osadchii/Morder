@@ -22,4 +22,10 @@ export class OzonModel extends TimeStamps {
   @prop()
   minimalPrice: number;
 
+  @prop()
+  updateFeedStocks: boolean;
+
+  @prop()
+  updateFeedPrices: boolean;
+
 }

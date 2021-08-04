@@ -34,7 +34,7 @@ class OrderItemModel {
   @prop()
   sum: number;
 
-  @prop()
+  @prop({ default: false })
   cancelled: boolean;
 
 }

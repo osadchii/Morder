@@ -72,16 +72,16 @@ export class SberMegaMarketFeedService {
     return this.companyModel.findOne().exec();
   }
 
-  private categoryInfo({ _id }: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
+  private categoryInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getCategoryData(_id);
+    return marketplaceExtension.getCategoryData(marketplace);
   }
 
-  private productInfo({ _id, specialPriceName }: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
+  private productInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getProductData(_id, specialPriceName);
+    return marketplaceExtension.getProductData(marketplace);
   }
 
   private async saveFeedFile(feed: SberMegaMarketFeedModel, fileName: string) {

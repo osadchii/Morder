@@ -11,6 +11,13 @@ export enum Vat {
   NO_VAT = 'NO_VAT'
 }
 
+export enum ProductType {
+  Piece = 'Piece',
+  Weight = 'Weight',
+  Alcohol = 'Alcohol',
+  Tobacco = 'Tobacco'
+}
+
 class SpecialPrice {
 
   @prop({ lowercase: true, trim: true })
@@ -74,6 +81,9 @@ export class ProductModel extends TimeStamps {
 
   @prop({ enum: Vat })
   vat: Vat;
+
+  @prop({ enum: ProductType })
+  productType: ProductType;
 
   @prop()
   stock?: number;

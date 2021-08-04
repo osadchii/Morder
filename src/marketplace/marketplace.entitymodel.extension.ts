@@ -3,9 +3,9 @@ import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
 import { MarketplaceCategoryModel } from './marketplace.category.model';
 import { MarketplaceProductModel } from './marketplace.product.model';
-import { Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { ProductImageHelper } from '../product/product.image';
+import { MarketplaceModelType } from './marketplace.enum';
 
 export class MarketplaceEntityModelExtension {
 
@@ -15,7 +15,7 @@ export class MarketplaceEntityModelExtension {
     private readonly configService: ConfigService) {
   }
 
-  getCategoryData(marketplaceId: Types.ObjectId): Promise<MarketplaceCategoryModel[]> {
+  getCategoryData({ _id }: MarketplaceModelType): Promise<MarketplaceCategoryModel[]> {
     return this.categoryModel
       .aggregate()
       .match({
@@ -25,7 +25,7 @@ export class MarketplaceEntityModelExtension {
         blocked: {
           $function: {
             body: MarketplaceEntityModelExtension.blockedCategoryFunctionText(),
-            args: ['$marketplaceSettings', marketplaceId],
+            args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
         },
@@ -38,7 +38,7 @@ export class MarketplaceEntityModelExtension {
       }).exec();
   }
 
-  getProductData(marketplaceId: Types.ObjectId, specialPriceName: string): Promise<MarketplaceProductModel[]> {
+  getProductData({ _id, specialPriceName }: MarketplaceModelType): Promise<MarketplaceProductModel[]> {
     return this.productModel
       .aggregate()
       .match({
@@ -49,7 +49,7 @@ export class MarketplaceEntityModelExtension {
         concreteMarketplaceSettings: {
           $function: {
             body: MarketplaceEntityModelExtension.sberMegaMarketFunctionText(),
-            args: ['$marketplaceSettings', marketplaceId],
+            args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
         },
@@ -76,6 +76,7 @@ export class MarketplaceEntityModelExtension {
         categoryCode: 1,
         barcode: 1,
         vat: 1,
+        productType: 1,
         brand: 1,
         countryOfOrigin: 1,
         weight: 1,
