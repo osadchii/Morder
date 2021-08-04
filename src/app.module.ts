@@ -12,6 +12,7 @@ import { OzonModule } from './ozon/ozon.module';
 import { MesoModule } from './meso/meso.module';
 import { WildberriesModule } from './wildberries/wildberries.module';
 import { AliexpressModule } from './aliexpress/aliexpress.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AliexpressModule } from './aliexpress/aliexpress.module';
     MesoModule,
     WildberriesModule,
     AliexpressModule,
+    OrderModule,
   ],
 })
 export class AppModule {
