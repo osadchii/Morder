@@ -11,9 +11,6 @@ export class SberMegaMarketDto {
   @IsBoolean()
   nullifyStocks: boolean;
 
-  @IsNumber()
-  feedGenerationInterval: number;
-
   @IsOptional()
   @IsString()
   specialPriceName?: string;
@@ -21,6 +18,9 @@ export class SberMegaMarketDto {
   @IsNumber()
   @Min(0)
   minimalPrice: number;
+
+  @IsNumber()
+  feedGenerationInterval: number;
 
   @IsNumber()
   outletId: number;

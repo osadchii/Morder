@@ -20,16 +20,16 @@ export class SberMegaMarketModel extends TimeStamps {
   specialPriceName?: string;
 
   @prop()
-  feedGenerationInterval: number;
-
-  @prop()
   minimalPrice: number;
 
   @prop()
-  outletId: number;
+  feedGenerationInterval: number;
 
   @prop()
   lastFeedGeneration?: Date;
+
+  @prop()
+  outletId: number;
 
   @prop()
   orderBefore: number;
