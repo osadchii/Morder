@@ -2,7 +2,7 @@ import { YandexMarketDto } from './dto/yandexmarket.dto';
 import { format } from 'date-fns';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
-import { Availability, Offer, YandexMarketFeedModel } from './feed-models/yandexmarket.feed.model';
+import { Availability, Offer, YandexMarketFeedModel } from './feed-model/yandexmarket.feed.model';
 
 interface ShortCategoryInformation {
   id: number;

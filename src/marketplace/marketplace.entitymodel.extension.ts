@@ -5,7 +5,7 @@ import { MarketplaceCategoryModel } from './marketplace.category.model';
 import { MarketplaceProductModel } from './marketplace.product.model';
 import { ConfigService } from '@nestjs/config';
 import { ProductImageHelper } from '../product/product.image';
-import { MarketplaceModelType } from './marketplace.enum';
+import { MarketplaceModel } from './marketplace.model';
 
 export class MarketplaceEntityModelExtension {
 
@@ -15,7 +15,7 @@ export class MarketplaceEntityModelExtension {
     private readonly configService: ConfigService) {
   }
 
-  getCategoryData({ _id }: MarketplaceModelType): Promise<MarketplaceCategoryModel[]> {
+  getCategoryData({ _id }: MarketplaceModel): Promise<MarketplaceCategoryModel[]> {
     return this.categoryModel
       .aggregate()
       .match({
@@ -24,7 +24,7 @@ export class MarketplaceEntityModelExtension {
       .addFields({
         blocked: {
           $function: {
-            body: MarketplaceEntityModelExtension.blockedCategoryFunctionText(),
+            body: MarketplaceEntityModelExtension.BlockerCategoryFunctionText(),
             args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
@@ -38,7 +38,7 @@ export class MarketplaceEntityModelExtension {
       }).exec();
   }
 
-  getProductData({ _id, specialPriceName }: MarketplaceModelType): Promise<MarketplaceProductModel[]> {
+  getProductData({ _id, specialPriceName }: MarketplaceModel): Promise<MarketplaceProductModel[]> {
     return this.productModel
       .aggregate()
       .match({
@@ -48,22 +48,22 @@ export class MarketplaceEntityModelExtension {
       .addFields({
         concreteMarketplaceSettings: {
           $function: {
-            body: MarketplaceEntityModelExtension.sberMegaMarketFunctionText(),
+            body: MarketplaceEntityModelExtension.MarketplaceSettingsFunctionText(),
             args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
         },
         calculatedPrice: {
           $function: {
-            body: MarketplaceEntityModelExtension.calculatedPriceFunctionText(),
+            body: MarketplaceEntityModelExtension.CalculatedPriceFunctionText(),
             args: ['$specialPrices', specialPriceName, '$price'],
             lang: 'js',
           },
         },
         picture: {
           $function: {
-            body: MarketplaceEntityModelExtension.pictureFunctionText(),
-            args: ['$image', ProductImageHelper.imageBaseUrl(this.configService)],
+            body: MarketplaceEntityModelExtension.PictureFunctionText(),
+            args: ['$image', ProductImageHelper.ImageBaseUrl(this.configService)],
             lang: 'js'
           }
         }
@@ -92,7 +92,7 @@ export class MarketplaceEntityModelExtension {
       }).exec();
   }
 
-  private static pictureFunctionText(): string {
+  private static PictureFunctionText(): string {
     return `function(image, imageBase) {
     if (!image) {
       return undefined;
@@ -101,7 +101,7 @@ export class MarketplaceEntityModelExtension {
   }`;
   }
 
-  private static blockedCategoryFunctionText(): string {
+  private static BlockerCategoryFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
     if (!marketplaceSettings) {
       return false;
@@ -116,7 +116,7 @@ export class MarketplaceEntityModelExtension {
   }`;
   }
 
-  private static calculatedPriceFunctionText(): string {
+  private static CalculatedPriceFunctionText(): string {
     return `function(specialPrices, specialPriceName, defaultPrice) {
     let price = defaultPrice;
     if (specialPrices) {
@@ -131,7 +131,7 @@ export class MarketplaceEntityModelExtension {
   }`;
   }
 
-  private static sberMegaMarketFunctionText(): string {
+  private static MarketplaceSettingsFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
     if (marketplaceSettings) {
       for (const settings of marketplaceSettings) {

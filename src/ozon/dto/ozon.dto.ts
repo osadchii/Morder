@@ -19,10 +19,16 @@ export class OzonDto {
   @Min(0)
   minimalPrice: number;
 
-  @IsBoolean()
-  updateFeedStocks: boolean;
+  @IsString()
+  warehouseName: string;
 
   @IsBoolean()
-  updateFeedPrices: boolean;
+  updateStocksByAPI: boolean;
+
+  @IsBoolean()
+  updatePricesByAPI: boolean;
+
+  @IsNumber()
+  feedGenerationInterval: number;
 
 }

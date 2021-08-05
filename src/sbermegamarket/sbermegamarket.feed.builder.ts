@@ -6,7 +6,7 @@ import {
   Param,
   SberMegaMarketFeedModel,
   ShipmentOptions,
-} from './feed-models/sbermegamarket.feed.model';
+} from './feed-model/sbermegamarket.feed.model';
 import { format } from 'date-fns';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';

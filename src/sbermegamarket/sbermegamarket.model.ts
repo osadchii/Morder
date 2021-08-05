@@ -1,11 +1,13 @@
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
+import { MarketplaceModel } from '../marketplace/marketplace.model';
 
 export interface SberMegaMarketModel extends Base {
 
 }
 
-export class SberMegaMarketModel extends TimeStamps {
+
+export class SberMegaMarketModel extends TimeStamps implements MarketplaceModel {
 
   @prop()
   name: string;

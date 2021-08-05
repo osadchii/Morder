@@ -1,29 +1,27 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
-import { CompanyModel } from '../company/company.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
-import { SberMegaMarketModel } from './sbermegamarket.model';
 import { Interval } from '@nestjs/schedule';
-import { SberMegaMarketFeedBuilder } from './sbermegamarket.feed.builder';
 import { Types } from 'mongoose';
 import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
 import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
 import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { ConfigService } from '@nestjs/config';
-import { SberMegaMarketFeedModel } from './feed-model/sbermegamarket.feed.model';
 import { path } from 'app-root-path';
 import { ensureDir, writeFile } from 'fs-extra';
+import { OzonFeedModel } from './feed-model/ozon.feed.model';
+import { OzonFeedBuilder } from './ozon.feed.builder';
+import { OzonModel } from './ozon.model';
 
 @Injectable()
-export class SberMegaMarketFeedService {
+export class OzonFeedService {
 
-  private readonly logger = new Logger(SberMegaMarketFeedService.name);
+  private readonly logger = new Logger(OzonFeedService.name);
 
   constructor(
-    @InjectModel(SberMegaMarketModel) private readonly sberMegaMarketModel: ModelType<SberMegaMarketModel>,
-    @InjectModel(CompanyModel) private readonly companyModel: ModelType<CompanyModel>,
+    @InjectModel(OzonModel) private readonly marketplaceModel: ModelType<OzonModel>,
     @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
     @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>,
     private readonly configService: ConfigService) {
@@ -35,25 +33,25 @@ export class SberMegaMarketFeedService {
     const settings = await this.settingsToGenerate();
 
     for (const item of settings) {
-      await this.generateFeed(item);
+      if (!item.updatePricesByAPI || !item.updateStocksByAPI) {
+        await this.generateFeed(item);
+      }
     }
 
   }
 
-  private async generateFeed(marketModel: SberMegaMarketModel) {
+  private async generateFeed(marketModel: OzonModel) {
 
     this.logger.log(`Start of ${marketModel.name} feed generation.`);
     this.logger.log(`Receiving ${marketModel.name} data.`);
 
-    const company = await this.companyInfo();
     const categories = await this.categoryInfo(marketModel);
     const products = await this.productInfo(marketModel);
 
     this.logger.log(`Building ${marketModel.name} feed.`);
 
-    const feedBuilder = new SberMegaMarketFeedBuilder(marketModel);
+    const feedBuilder = new OzonFeedBuilder(marketModel);
 
-    feedBuilder.setCompany(company);
     categories.forEach((item) => feedBuilder.addCategory(item));
     products.forEach((item) => feedBuilder.addProduct(item));
 
@@ -68,23 +66,19 @@ export class SberMegaMarketFeedService {
 
   }
 
-  private companyInfo(): Promise<CompanyModel> {
-    return this.companyModel.findOne().exec();
-  }
-
-  private categoryInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
+  private categoryInfo(marketplace: OzonModel): Promise<MarketplaceCategoryModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
     return marketplaceExtension.getCategoryData(marketplace);
   }
 
-  private productInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
+  private productInfo(marketplace: OzonModel): Promise<MarketplaceProductModel[]> {
     const marketplaceExtension = new MarketplaceEntityModelExtension(
       this.categoryModel, this.productModel, this.configService);
     return marketplaceExtension.getProductData(marketplace);
   }
 
-  private async saveFeedFile(feed: SberMegaMarketFeedModel, fileName: string) {
+  private async saveFeedFile(feed: OzonFeedModel, fileName: string) {
     const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
     const feedFullName = `${feedPath}/${fileName}.xml`;
 
@@ -96,17 +90,17 @@ export class SberMegaMarketFeedService {
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {
-    return this.sberMegaMarketModel.findByIdAndUpdate(feedId, {
+    return this.marketplaceModel.findByIdAndUpdate(feedId, {
       lastFeedGeneration: new Date(),
     }, {
       useFindAndModify: false,
     }).exec();
   }
 
-  private async settingsToGenerate(): Promise<SberMegaMarketModel[]> {
+  private async settingsToGenerate(): Promise<OzonModel[]> {
 
-    const result: SberMegaMarketModel[] = [];
-    const settings = await this.sberMegaMarketModel.find({
+    const result: OzonModel[] = [];
+    const settings = await this.marketplaceModel.find({
       active: true,
     }).exec();
 

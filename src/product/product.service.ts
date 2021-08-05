@@ -64,7 +64,7 @@ export class ProductService {
         createdAt: 0,
       },
     }).catch((error) =>
-      ProductService.catchNotUniqueValueError(error));
+      ProductService.CatchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
@@ -194,7 +194,7 @@ export class ProductService {
 
   async uploadImage(erpCode: string, file: Express.Multer.File) {
     const { mimetype } = file;
-    if (!ProductImageHelper.isImageMimeType(mimetype)) {
+    if (!ProductImageHelper.IsImageMimeType(mimetype)) {
       throw new HttpException(FILE_IS_NOT_IMAGE, 400);
     }
 
@@ -207,8 +207,8 @@ export class ProductService {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
 
-    const filePath = ProductImageHelper.imagePath(this.configService);
-    await ProductImageHelper.saveFile(filePath, erpCode, file.buffer);
+    const filePath = ProductImageHelper.ImagePath(this.configService);
+    await ProductImageHelper.SaveFile(filePath, erpCode, file.buffer);
 
     return this.productModel
       .findOneAndUpdate({ erpCode },
@@ -238,15 +238,15 @@ export class ProductService {
     if (!product.image) {
       throw new NotFoundException(IMAGE_NOT_FOUND_ERROR);
     }
-    const imagePath = ProductImageHelper.imagePath(this.configService);
-    const fullFileName = ProductImageHelper.fullFileName(imagePath, product.image);
+    const imagePath = ProductImageHelper.ImagePath(this.configService);
+    const fullFileName = ProductImageHelper.FullFileName(imagePath, product.image);
 
     return createReadStream(fullFileName);
   }
 
   // Error handlers
 
-  static catchNotUniqueValueError(error) {
+  static CatchNotUniqueValueError(error) {
     if (error.code != 11000)
       throw error;
 

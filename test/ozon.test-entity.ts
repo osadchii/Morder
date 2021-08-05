@@ -1,8 +1,10 @@
 import { OzonDto } from '../src/ozon/dto/ozon.dto';
 
 export const ozonTestEntity: OzonDto = {
-  updateFeedPrices: false,
-  updateFeedStocks: false,
+  feedGenerationInterval: 0,
+  warehouseName: '',
+  updateStocksByAPI: false,
+  updatePricesByAPI: false,
   active: true,
   minimalPrice: 0,
   nullifyStocks: false,

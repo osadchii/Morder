@@ -13,7 +13,7 @@ import { path } from 'app-root-path';
 import { ensureDir, writeFile } from 'fs-extra';
 import { YandexMarketModel } from './yandexmarket.model';
 import { YandexMarketFeedBuilder } from './yandexmarket.feed.builder';
-import { YandexMarketFeedModel } from './feed-models/yandexmarket.feed.model';
+import { YandexMarketFeedModel } from './feed-model/yandexmarket.feed.model';
 
 @Injectable()
 export class YandexMarketFeedService {
@@ -85,7 +85,7 @@ export class YandexMarketFeedService {
 
     const xmlBuilder = require('xmlbuilder');
     const xml = xmlBuilder.create(feed).end({ pretty: true });
-    await writeFile(feedFullName, xml);
+    return writeFile(feedFullName, xml);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {

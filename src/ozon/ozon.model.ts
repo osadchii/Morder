@@ -1,11 +1,12 @@
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { prop } from '@typegoose/typegoose';
+import { MarketplaceModel } from '../marketplace/marketplace.model';
 
 export interface OzonModel extends Base {
 
 }
 
-export class OzonModel extends TimeStamps {
+export class OzonModel extends TimeStamps implements MarketplaceModel {
 
   @prop()
   name: string;
@@ -23,9 +24,18 @@ export class OzonModel extends TimeStamps {
   minimalPrice: number;
 
   @prop()
-  updateFeedStocks: boolean;
+  warehouseName: string;
 
   @prop()
-  updateFeedPrices: boolean;
+  updateStocksByAPI: boolean;
+
+  @prop()
+  updatePricesByAPI: boolean;
+
+  @prop()
+  feedGenerationInterval: number;
+
+  @prop()
+  lastFeedGeneration?: Date;
 
 }
