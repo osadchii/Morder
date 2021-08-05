@@ -16,10 +16,9 @@ import {
   updateSpecialPriceDto,
   updateStockDto,
 } from './catalog.test-entity';
+import { E2EUtil } from './e2e.util';
 
-// Mocking a service using schedule
-jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
-jest.mock('../src/yandexmarket/yandexmarket.feed.service');
+E2EUtil.MockScheduleServices();
 
 describe('Product catalog (e2e)', () => {
   let app: INestApplication;

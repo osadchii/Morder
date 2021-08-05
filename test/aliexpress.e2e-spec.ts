@@ -4,10 +4,9 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { disconnect } from 'mongoose';
 import { aliexpressTestEntity } from './aliexpress.test-entity';
+import { E2EUtil } from './e2e.util';
 
-// Mocking a service using schedule
-jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
-jest.mock('../src/yandexmarket/yandexmarket.feed.service');
+E2EUtil.MockScheduleServices();
 
 describe('Aliexpress settings (e2e)', () => {
   let app: INestApplication;

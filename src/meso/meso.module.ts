@@ -3,6 +3,8 @@ import { MesoService } from './meso.service';
 import { MesoController } from './meso.controller';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { MesoModel } from './meso.model';
+import { HttpModule } from '@nestjs/axios';
+import { getHttpConfig } from '../configs/http.config';
 
 @Module({
   providers: [MesoService],
@@ -15,6 +17,9 @@ import { MesoModel } from './meso.model';
         },
       },
     ]),
+    HttpModule.registerAsync({
+      useFactory: getHttpConfig,
+    }),
   ],
   controllers: [MesoController],
 })

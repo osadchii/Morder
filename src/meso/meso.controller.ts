@@ -6,7 +6,8 @@ import { MesoDto } from './dto/meso.dto';
 
 @Controller('meso')
 export class MesoController {
-  constructor(private readonly marketplaceService: MesoService) {
+  constructor(
+    private readonly marketplaceService: MesoService) {
   }
 
   @Get('get')

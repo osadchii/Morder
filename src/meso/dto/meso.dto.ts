@@ -17,4 +17,10 @@ export class MesoDto {
   @IsNumber()
   @Min(0)
   minimalPrice: number;
+
+  @IsString()
+  login: string;
+
+  @IsString()
+  password: string;
 }

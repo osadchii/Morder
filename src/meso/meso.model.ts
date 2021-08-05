@@ -21,4 +21,10 @@ export class MesoModel extends TimeStamps implements MarketplaceModel {
 
   @prop()
   minimalPrice: number;
+
+  @prop()
+  login: string;
+
+  @prop()
+  password: string;
 }
