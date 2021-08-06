@@ -7,6 +7,6 @@ export class MesoProduct {
   NdsPercent: number;
 }
 
-export class MesoProducts {
+export class MesoCatalogApiModel {
   Products: MesoProduct[];
 }

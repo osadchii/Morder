@@ -1,8 +1,8 @@
 import { MesoModel } from './meso.model';
 import { HttpService } from '@nestjs/axios';
-import { GetTokenApiModel } from './api-model/get-token.api.model';
+import { MesoGetTokenApiModel } from './api-model/meso.get-token.api.model';
 import { Logger } from '@nestjs/common';
-import { MesoProducts } from './api-model/catalog.api.model';
+import { MesoCatalogApiModel } from './api-model/meso.catalog.api.model';
 
 export class MesoIntegration {
 
@@ -15,36 +15,43 @@ export class MesoIntegration {
 
   private readonly logger = new Logger(MesoIntegration.name);
 
-  async sendCatalog(catalog: MesoProducts) {
+  async sendCatalog(catalog: MesoCatalogApiModel) {
 
     const url = `${this.baseUrl}/api/store/integration/catalog/upload`;
     const token = await this.getToken();
+    let success = false;
 
     if (token === '')
       return;
 
     const { name } = this.marketplaceSettings;
 
-    return this.httpService.post(url, catalog)
+    this.httpService.post(url, catalog)
       .toPromise()
       .then(() => {
         this.logger.log(`Successfully sent catalog to ${name} MESO.`);
+        success = true;
       })
       .catch((error) => {
         const data = error.response.data;
         const { title, status } = data;
         this.logger.error(`Can't send catalog to ${name} MESO.\nResponse status code: ${status}. Error title ${title}`);
       });
+
+    return success;
+
   }
 
-  private async getToken() {
+  private async getToken(): Promise<string> {
 
     const url = `${this.baseUrl}/api/store/token/request`;
+    const { login, password } = this.marketplaceSettings;
+
     let token = '';
 
-    const body: GetTokenApiModel = {
-      UserName: this.marketplaceSettings.login,
-      Password: this.marketplaceSettings.password,
+    const body: MesoGetTokenApiModel = {
+      UserName: login,
+      Password: password,
     };
 
     await this.httpService.post(url, body)

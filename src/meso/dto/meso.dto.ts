@@ -1,4 +1,5 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayUnique, IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ProductType } from '../../product/product.model';
 
 export class MesoDto {
   @IsString()
@@ -23,4 +24,9 @@ export class MesoDto {
 
   @IsString()
   password: string;
+
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(ProductType, { each: true })
+  productTypes: ProductType[];
 }

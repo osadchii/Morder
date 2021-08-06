@@ -38,12 +38,17 @@ export class MarketplaceEntityModelExtension {
       }).exec();
   }
 
-  getProductData({ _id, specialPriceName }: MarketplaceModel): Promise<MarketplaceProductModel[]> {
+  getProductData(
+    { _id, specialPriceName, productTypes }: MarketplaceModel,
+    match?: object): Promise<MarketplaceProductModel[]> {
+
     return this.productModel
       .aggregate()
       .match({
+        ...match,
         isDeleted: false,
         categoryCode: { $exists: true },
+        productType: { $in: productTypes },
       })
       .addFields({
         concreteMarketplaceSettings: {
@@ -64,9 +69,9 @@ export class MarketplaceEntityModelExtension {
           $function: {
             body: MarketplaceEntityModelExtension.PictureFunctionText(),
             args: ['$image', ProductImageHelper.ImageBaseUrl(this.configService)],
-            lang: 'js'
-          }
-        }
+            lang: 'js',
+          },
+        },
       })
       .project({
         articul: 1,
@@ -90,6 +95,13 @@ export class MarketplaceEntityModelExtension {
         concreteMarketplaceSettings: 1,
         characteristics: 1,
       }).exec();
+  }
+
+  getProductDataByLastUpdate(marketplaceModel: MarketplaceModel, date: Date) {
+    const match = {
+      _updatedAt: { $gt: date },
+    };
+    return this.getProductData(marketplaceModel, match);
   }
 
   private static PictureFunctionText(): string {

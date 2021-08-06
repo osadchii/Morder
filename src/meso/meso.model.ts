@@ -1,6 +1,7 @@
 import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { MarketplaceModel } from '../marketplace/marketplace.model';
+import { ProductType } from '../product/product.model';
 
 export interface MesoModel extends Base {
 }
@@ -27,4 +28,7 @@ export class MesoModel extends TimeStamps implements MarketplaceModel {
 
   @prop()
   password: string;
+
+  @prop({ _id: false, type: () => [String], enum: ProductType })
+  productTypes: ProductType[];
 }

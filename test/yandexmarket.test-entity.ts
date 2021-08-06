@@ -1,6 +1,7 @@
 import { YandexMarketDto } from '../src/yandexmarket/dto/yandexmarket.dto';
 
 export const yandexMarketDto: YandexMarketDto = {
+  productTypes: [],
   name: 'Test yandex market',
   active: true,
   nullifyStocks: false,

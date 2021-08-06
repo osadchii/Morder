@@ -1,4 +1,5 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayUnique, IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ProductType } from '../../product/product.model';
 
 export class YandexMarketDto {
 
@@ -41,5 +42,10 @@ export class YandexMarketDto {
   @IsOptional()
   @IsString()
   defaultVendorCode?: string;
+
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(ProductType, { each: true })
+  productTypes: ProductType[];
 
 }

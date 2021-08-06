@@ -1,6 +1,7 @@
 import { SberMegaMarketDto } from '../src/sbermegamarket/dto/sbermegamarket.dto';
 
 export const sberMegaMarketDto: SberMegaMarketDto = {
+  productTypes: [],
   orderBefore: 1,
   shippingDays: 0,
   name: 'Test SberMegaMarget',

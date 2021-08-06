@@ -1,4 +1,5 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ArrayUnique, IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ProductType } from '../../product/product.model';
 
 export class WildberriesDto {
   @IsString()
@@ -17,4 +18,9 @@ export class WildberriesDto {
   @IsNumber()
   @Min(0)
   minimalPrice: number;
+
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(ProductType, { each: true })
+  productTypes: ProductType[];
 }

@@ -1,6 +1,7 @@
 import { OzonDto } from '../src/ozon/dto/ozon.dto';
 
 export const ozonTestEntity: OzonDto = {
+  productTypes: [],
   feedGenerationInterval: 0,
   warehouseName: '',
   updateStocksByAPI: false,
