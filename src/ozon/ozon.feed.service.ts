@@ -5,26 +5,25 @@ import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
 import { Interval } from '@nestjs/schedule';
 import { Types } from 'mongoose';
-import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
-import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
-import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { ConfigService } from '@nestjs/config';
 import { path } from 'app-root-path';
-import { ensureDir, writeFile } from 'fs-extra';
-import { OzonFeedModel } from './feed-model/ozon.feed.model';
 import { OzonFeedBuilder } from './ozon.feed.builder';
 import { OzonModel } from './ozon.model';
+import { MarketplaceService } from '../marketplace/marketplace.service';
+import { CompanyModel } from '../company/company.model';
 
 @Injectable()
-export class OzonFeedService {
+export class OzonFeedService extends MarketplaceService {
 
   private readonly logger = new Logger(OzonFeedService.name);
 
   constructor(
     @InjectModel(OzonModel) private readonly marketplaceModel: ModelType<OzonModel>,
-    @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
-    @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>,
-    private readonly configService: ConfigService) {
+    @InjectModel(CompanyModel) protected readonly companyModel: ModelType<CompanyModel>,
+    @InjectModel(CategoryModel) protected readonly categoryModel: ModelType<CategoryModel>,
+    @InjectModel(ProductModel) protected readonly productModel: ModelType<ProductModel>,
+    protected readonly configService: ConfigService) {
+    super(companyModel, categoryModel, productModel, configService);
   }
 
   @Interval(10000)
@@ -42,13 +41,15 @@ export class OzonFeedService {
 
   private async generateFeed(marketModel: OzonModel) {
 
-    this.logger.log(`Start of ${marketModel.name} feed generation.`);
-    this.logger.log(`Receiving ${marketModel.name} data.`);
+    const { _id, name } = marketModel;
+
+    this.logger.log(`Start of ${name} feed generation.`);
+    this.logger.log(`Receiving ${name} data.`);
 
     const categories = await this.categoryInfo(marketModel);
     const products = await this.productInfo(marketModel);
 
-    this.logger.log(`Building ${marketModel.name} feed.`);
+    this.logger.log(`Building ${name} feed.`);
 
     const feedBuilder = new OzonFeedBuilder(marketModel);
 
@@ -57,36 +58,14 @@ export class OzonFeedService {
 
     const feed = feedBuilder.build();
 
-    this.logger.log(`Saving ${marketModel.name} feed file.`);
+    this.logger.log(`Saving ${name} feed file.`);
 
-    await this.saveFeedFile(feed, marketModel._id.toHexString());
-    await this.setLastFeedGeneration(marketModel._id);
+    await this.saveXmlFile(feed, _id.toHexString());
 
-    this.logger.log(`End of ${marketModel.name} feed generation.`);
+    await this.setLastFeedGeneration(_id);
 
-  }
+    this.logger.log(`End of ${name} feed generation.`);
 
-  private categoryInfo(marketplace: OzonModel): Promise<MarketplaceCategoryModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getCategoryData(marketplace);
-  }
-
-  private productInfo(marketplace: OzonModel): Promise<MarketplaceProductModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getProductData(marketplace);
-  }
-
-  private async saveFeedFile(feed: OzonFeedModel, fileName: string) {
-    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
-    const feedFullName = `${feedPath}/${fileName}.xml`;
-
-    await ensureDir(feedPath);
-
-    const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feed).end({ pretty: true });
-    return writeFile(feedFullName, xml);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {

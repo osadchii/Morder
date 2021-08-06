@@ -6,6 +6,7 @@ import { OzonModel } from './ozon.model';
 import { OzonFeedService } from './ozon.feed.service';
 import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
+import { CompanyModel } from '../company/company.model';
 
 @Module({
   controllers: [OzonController],
@@ -15,6 +16,14 @@ import { ProductModel } from '../product/product.model';
         typegooseClass: OzonModel,
         schemaOptions: {
           collection: 'Ozon',
+        },
+      },
+    ]),
+    TypegooseModule.forFeature([
+      {
+        typegooseClass: CompanyModel,
+        schemaOptions: {
+          collection: 'Company',
         },
       },
     ]),

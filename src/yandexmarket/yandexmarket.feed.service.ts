@@ -5,26 +5,25 @@ import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
 import { Interval } from '@nestjs/schedule';
 import { Types } from 'mongoose';
-import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
-import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
-import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { ConfigService } from '@nestjs/config';
 import { path } from 'app-root-path';
-import { ensureDir, writeFile } from 'fs-extra';
 import { YandexMarketModel } from './yandexmarket.model';
 import { YandexMarketFeedBuilder } from './yandexmarket.feed.builder';
-import { YandexMarketFeedModel } from './feed-model/yandexmarket.feed.model';
+import { MarketplaceService } from '../marketplace/marketplace.service';
+import { CompanyModel } from '../company/company.model';
 
 @Injectable()
-export class YandexMarketFeedService {
+export class YandexMarketFeedService extends MarketplaceService {
 
   private readonly logger = new Logger(YandexMarketFeedService.name);
 
   constructor(
     @InjectModel(YandexMarketModel) private readonly yandexMarketModel: ModelType<YandexMarketModel>,
-    @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
-    @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>,
-    private readonly configService: ConfigService) {
+    @InjectModel(CompanyModel) protected readonly companyModel: ModelType<CompanyModel>,
+    @InjectModel(CategoryModel) protected readonly categoryModel: ModelType<CategoryModel>,
+    @InjectModel(ProductModel) protected readonly productModel: ModelType<ProductModel>,
+    protected readonly configService: ConfigService) {
+    super(companyModel, categoryModel, productModel, configService);
   }
 
   @Interval(10000)
@@ -40,13 +39,15 @@ export class YandexMarketFeedService {
 
   private async generateFeed(marketModel: YandexMarketModel) {
 
-    this.logger.log(`Start of ${marketModel.name} feed generation.`);
-    this.logger.log(`Receiving ${marketModel.name} data.`);
+    const { _id, name } = marketModel;
+
+    this.logger.log(`Start of ${name} feed generation.`);
+    this.logger.log(`Receiving ${name} data.`);
 
     const categories = await this.categoryInfo(marketModel);
     const products = await this.productInfo(marketModel);
 
-    this.logger.log(`Building ${marketModel.name} feed.`);
+    this.logger.log(`Building ${name} feed.`);
 
     const feedBuilder = new YandexMarketFeedBuilder(marketModel);
 
@@ -55,37 +56,14 @@ export class YandexMarketFeedService {
 
     const feed = feedBuilder.build();
 
-    this.logger.log(`Saving ${marketModel.name} feed file.`);
+    this.logger.log(`Saving ${name} feed file.`);
 
-    await this.saveFeedFile(feed, marketModel._id.toHexString());
+    await this.saveXmlFile(feed, _id.toHexString());
 
-    await this.setLastFeedGeneration(marketModel._id);
+    await this.setLastFeedGeneration(_id);
 
-    this.logger.log(`End of ${marketModel.name} feed generation.`);
+    this.logger.log(`End of ${name} feed generation.`);
 
-  }
-
-  private categoryInfo(marketplace: YandexMarketModel): Promise<MarketplaceCategoryModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getCategoryData(marketplace);
-  }
-
-  private productInfo(marketplace: YandexMarketModel): Promise<MarketplaceProductModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getProductData(marketplace);
-  }
-
-  private async saveFeedFile(feed: YandexMarketFeedModel, feedName: string) {
-    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
-    const feedFullName = `${feedPath}/${feedName}.xml`;
-
-    await ensureDir(feedPath);
-
-    const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feed).end({ pretty: true });
-    return writeFile(feedFullName, xml);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {

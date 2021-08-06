@@ -1,21 +1,43 @@
+import { path } from 'app-root-path';
+import { ensureDir, writeFile } from 'fs-extra';
+import { ConfigService } from '@nestjs/config';
+import { CompanyModel } from '../company/company.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryModel } from '../category/category.model';
 import { ProductModel } from '../product/product.model';
+import { MarketplaceModel } from './marketplace.model';
 import { MarketplaceCategoryModel } from './marketplace.category.model';
 import { MarketplaceProductModel } from './marketplace.product.model';
-import { ConfigService } from '@nestjs/config';
 import { ProductImageHelper } from '../product/product.image';
-import { MarketplaceModel } from './marketplace.model';
 
-export class MarketplaceEntityModelExtension {
+export abstract class MarketplaceService {
 
-  constructor(
-    private readonly categoryModel: ModelType<CategoryModel>,
-    private readonly productModel: ModelType<ProductModel>,
-    private readonly configService: ConfigService) {
+  protected constructor(
+    protected readonly companyModel: ModelType<CompanyModel>,
+    protected readonly categoryModel: ModelType<CategoryModel>,
+    protected readonly productModel: ModelType<ProductModel>,
+    protected readonly configService: ConfigService) {
   }
 
-  getCategoryData({ _id }: MarketplaceModel): Promise<MarketplaceCategoryModel[]> {
+  protected async saveXmlFile(feed: object, fileName: string) {
+
+    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
+    const feedFullName = `${feedPath}/${fileName}.xml`;
+
+    await ensureDir(feedPath);
+
+    const xmlBuilder = require('xmlbuilder');
+    const xml = xmlBuilder.create(feed).end({ pretty: true });
+
+    return writeFile(feedFullName, xml);
+
+  }
+
+  protected companyInfo(): Promise<CompanyModel> {
+    return this.companyModel.findOne().exec();
+  }
+
+  protected categoryInfo({_id}: MarketplaceModel): Promise<MarketplaceCategoryModel[]> {
     return this.categoryModel
       .aggregate()
       .match({
@@ -24,7 +46,7 @@ export class MarketplaceEntityModelExtension {
       .addFields({
         blocked: {
           $function: {
-            body: MarketplaceEntityModelExtension.BlockerCategoryFunctionText(),
+            body: MarketplaceService.BlockerCategoryFunctionText(),
             args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
@@ -38,14 +60,11 @@ export class MarketplaceEntityModelExtension {
       }).exec();
   }
 
-  getProductData(
-    { _id, specialPriceName, productTypes }: MarketplaceModel,
-    match?: object): Promise<MarketplaceProductModel[]> {
+  protected productInfo({_id, specialPriceName, productTypes}: MarketplaceModel): Promise<MarketplaceProductModel[]> {
 
     return this.productModel
       .aggregate()
       .match({
-        ...match,
         isDeleted: false,
         categoryCode: { $exists: true },
         productType: { $in: productTypes },
@@ -53,21 +72,21 @@ export class MarketplaceEntityModelExtension {
       .addFields({
         concreteMarketplaceSettings: {
           $function: {
-            body: MarketplaceEntityModelExtension.MarketplaceSettingsFunctionText(),
+            body: MarketplaceService.MarketplaceSettingsFunctionText(),
             args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
         },
         calculatedPrice: {
           $function: {
-            body: MarketplaceEntityModelExtension.CalculatedPriceFunctionText(),
+            body: MarketplaceService.CalculatedPriceFunctionText(),
             args: ['$specialPrices', specialPriceName, '$price'],
             lang: 'js',
           },
         },
         picture: {
           $function: {
-            body: MarketplaceEntityModelExtension.PictureFunctionText(),
+            body: MarketplaceService.PictureFunctionText(),
             args: ['$image', ProductImageHelper.ImageBaseUrl(this.configService)],
             lang: 'js',
           },
@@ -95,13 +114,7 @@ export class MarketplaceEntityModelExtension {
         concreteMarketplaceSettings: 1,
         characteristics: 1,
       }).exec();
-  }
 
-  getProductDataByLastUpdate(marketplaceModel: MarketplaceModel, date: Date) {
-    const match = {
-      _updatedAt: { $gt: date },
-    };
-    return this.getProductData(marketplaceModel, match);
   }
 
   private static PictureFunctionText(): string {

@@ -8,25 +8,22 @@ import { SberMegaMarketModel } from './sbermegamarket.model';
 import { Interval } from '@nestjs/schedule';
 import { SberMegaMarketFeedBuilder } from './sbermegamarket.feed.builder';
 import { Types } from 'mongoose';
-import { MarketplaceEntityModelExtension } from '../marketplace/marketplace.entitymodel.extension';
-import { MarketplaceCategoryModel } from '../marketplace/marketplace.category.model';
-import { MarketplaceProductModel } from '../marketplace/marketplace.product.model';
 import { ConfigService } from '@nestjs/config';
-import { SberMegaMarketFeedModel } from './feed-model/sbermegamarket.feed.model';
 import { path } from 'app-root-path';
-import { ensureDir, writeFile } from 'fs-extra';
+import { MarketplaceService } from '../marketplace/marketplace.service';
 
 @Injectable()
-export class SberMegaMarketFeedService {
+export class SberMegaMarketFeedService extends MarketplaceService {
 
   private readonly logger = new Logger(SberMegaMarketFeedService.name);
 
   constructor(
     @InjectModel(SberMegaMarketModel) private readonly sberMegaMarketModel: ModelType<SberMegaMarketModel>,
-    @InjectModel(CompanyModel) private readonly companyModel: ModelType<CompanyModel>,
-    @InjectModel(CategoryModel) private readonly categoryModel: ModelType<CategoryModel>,
-    @InjectModel(ProductModel) private readonly productModel: ModelType<ProductModel>,
-    private readonly configService: ConfigService) {
+    @InjectModel(CompanyModel) protected readonly companyModel: ModelType<CompanyModel>,
+    @InjectModel(CategoryModel) protected readonly categoryModel: ModelType<CategoryModel>,
+    @InjectModel(ProductModel) protected readonly productModel: ModelType<ProductModel>,
+    protected readonly configService: ConfigService) {
+    super(companyModel, categoryModel, productModel, configService);
   }
 
   @Interval(10000)
@@ -42,14 +39,16 @@ export class SberMegaMarketFeedService {
 
   private async generateFeed(marketModel: SberMegaMarketModel) {
 
-    this.logger.log(`Start of ${marketModel.name} feed generation.`);
-    this.logger.log(`Receiving ${marketModel.name} data.`);
+    const { _id, name } = marketModel;
+
+    this.logger.log(`Start of ${name} feed generation.`);
+    this.logger.log(`Receiving ${name} data.`);
 
     const company = await this.companyInfo();
     const categories = await this.categoryInfo(marketModel);
     const products = await this.productInfo(marketModel);
 
-    this.logger.log(`Building ${marketModel.name} feed.`);
+    this.logger.log(`Building ${name} feed.`);
 
     const feedBuilder = new SberMegaMarketFeedBuilder(marketModel);
 
@@ -59,40 +58,13 @@ export class SberMegaMarketFeedService {
 
     const feed = feedBuilder.build();
 
-    this.logger.log(`Saving ${marketModel.name} feed file.`);
+    this.logger.log(`Saving ${name} feed file.`);
 
-    await this.saveFeedFile(feed, marketModel._id.toHexString());
-    await this.setLastFeedGeneration(marketModel._id);
+    await this.saveXmlFile(feed, _id.toHexString());
+    await this.setLastFeedGeneration(_id);
 
-    this.logger.log(`End of ${marketModel.name} feed generation.`);
+    this.logger.log(`End of ${name} feed generation.`);
 
-  }
-
-  private companyInfo(): Promise<CompanyModel> {
-    return this.companyModel.findOne().exec();
-  }
-
-  private categoryInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceCategoryModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getCategoryData(marketplace);
-  }
-
-  private productInfo(marketplace: SberMegaMarketModel): Promise<MarketplaceProductModel[]> {
-    const marketplaceExtension = new MarketplaceEntityModelExtension(
-      this.categoryModel, this.productModel, this.configService);
-    return marketplaceExtension.getProductData(marketplace);
-  }
-
-  private async saveFeedFile(feed: SberMegaMarketFeedModel, fileName: string) {
-    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
-    const feedFullName = `${feedPath}/${fileName}.xml`;
-
-    await ensureDir(feedPath);
-
-    const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feed).end({ pretty: true });
-    return writeFile(feedFullName, xml);
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {
