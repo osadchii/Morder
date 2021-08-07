@@ -18,7 +18,6 @@ import { OrderModule } from './order/order.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
     }),
     TypegooseModule.forRootAsync({
       imports: [],
