@@ -55,16 +55,16 @@ export interface ProductModel extends Base {
 
 export class ProductModel extends TimeStamps {
 
-  @prop()
+  @prop({ text: true })
   name: string;
 
-  @prop({ unique: true })
+  @prop({ unique: true, text: true })
   articul: string;
 
   @prop({ unique: true })
   erpCode: string;
 
-  @prop()
+  @prop({ text: true })
   brand?: string;
 
   @prop()
@@ -76,7 +76,7 @@ export class ProductModel extends TimeStamps {
   @prop()
   countryOfOrigin?: string;
 
-  @prop({ unique: true })
+  @prop({ unique: true, text: true })
   barcode: string;
 
   @prop({ enum: Vat })
@@ -112,7 +112,7 @@ export class ProductModel extends TimeStamps {
   @prop()
   vendorCode?: string;
 
-  @prop()
+  @prop({ text: true })
   description?: string;
 
   @prop({ type: () => [ProductCharacteristic], _id: false })
