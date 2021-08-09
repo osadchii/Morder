@@ -7,7 +7,7 @@ import { SetStockDto } from './dto/set-stock.dto';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { ConfigService } from '@nestjs/config';
-import { FILE_IS_NOT_IMAGE, IMAGE_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
+import { FILE_IS_NOT_IMAGE, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
 import { createReadStream } from 'fs';
 import { ProductImageHelper } from './product.image';
 
@@ -235,11 +235,11 @@ export class ProductService {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
 
-    if (!product.image) {
-      throw new NotFoundException(IMAGE_NOT_FOUND_ERROR);
+    let fullFileName = 'content/picture/no-image.png'
+    if (product.image) {
+      const imagePath = ProductImageHelper.ImagePath(this.configService);
+      fullFileName = ProductImageHelper.FullFileName(imagePath, product.image);
     }
-    const imagePath = ProductImageHelper.ImagePath(this.configService);
-    const fullFileName = ProductImageHelper.FullFileName(imagePath, product.image);
 
     return createReadStream(fullFileName);
   }

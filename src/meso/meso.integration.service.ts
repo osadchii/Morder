@@ -63,17 +63,17 @@ export class MesoIntegrationService extends MarketplaceService {
     const integration = new MesoIntegration(marketModel, this.httpService);
     const result = await integration.sendCatalog(catalog);
 
-    if (result) {
-      this.logger.log(`Catalog ${name} successfully sent.`)
-    }
-    else{
-      this.logger.error(`Catalog ${name} didn't sent.`)
+    if (!result) {
+      this.logger.error(`Catalog ${name} was not sent due to errors.`);
     }
 
     this.logger.log(`Saving ${name} catalog file.`);
 
     await this.saveJsonFile(catalog, _id.toHexString());
-    await this.setLastCatalogSent(_id);
+
+    if (result) {
+      await this.setLastCatalogSent(_id);
+    }
 
     this.logger.log(`End of ${name} catalog generation.`);
 

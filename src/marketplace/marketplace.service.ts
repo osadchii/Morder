@@ -98,7 +98,7 @@ export abstract class MarketplaceService {
         picture: {
           $function: {
             body: MarketplaceService.PictureFunctionText(),
-            args: ['$image', ProductImageHelper.ImageBaseUrl(this.configService)],
+            args: ['$image', '$erpCode', ProductImageHelper.ImageBaseUrl(this.configService)],
             lang: 'js',
           },
         },
@@ -129,9 +129,9 @@ export abstract class MarketplaceService {
   }
 
   private static PictureFunctionText(): string {
-    return `function(image, imageBase) {
-    if (!image) {
-      return undefined;
+    return `function(image, erpCode, imageBase) {
+    if (!image){
+      return imageBase + erpCode;
     }
     return imageBase + image;
   }`;

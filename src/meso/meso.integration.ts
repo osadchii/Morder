@@ -20,10 +20,12 @@ export class MesoIntegration {
     const url = `${this.baseUrl}/api/store/integration/catalog/upload`;
     const token = await this.getToken();
 
+    ///////// For testing
     if (token){
       return true;
     }
     return false;
+    /////////
 
     let success = false;
 
