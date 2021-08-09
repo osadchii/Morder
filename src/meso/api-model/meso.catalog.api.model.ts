@@ -9,4 +9,7 @@ export class MesoProduct {
 
 export class MesoCatalogApiModel {
   Products: MesoProduct[];
+  constructor() {
+    this.Products = [];
+  }
 }

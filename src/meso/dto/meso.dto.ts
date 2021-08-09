@@ -29,4 +29,8 @@ export class MesoDto {
   @ArrayUnique()
   @IsEnum(ProductType, { each: true })
   productTypes: ProductType[];
+
+  @IsNumber()
+  @Min(1)
+  catalogSendInterval: number;
 }

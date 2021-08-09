@@ -31,4 +31,10 @@ export class MesoModel extends TimeStamps implements MarketplaceModel {
 
   @prop({ _id: false, type: () => [String], enum: ProductType })
   productTypes: ProductType[];
+
+  @prop()
+  catalogSendInterval: number;
+
+  @prop()
+  lastCatalogSend?: Date;
 }

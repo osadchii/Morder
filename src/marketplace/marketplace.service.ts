@@ -33,11 +33,22 @@ export abstract class MarketplaceService {
 
   }
 
+  protected async saveJsonFile(obj: object, fileName: string) {
+
+    const feedPath = `${path}/${this.configService.get('FEEDS_PATH')}`;
+    const feedFullName = `${feedPath}/${fileName}.json`;
+
+    await ensureDir(feedPath);
+
+    return writeFile(feedFullName, JSON.stringify(obj));
+
+  }
+
   protected companyInfo(): Promise<CompanyModel> {
     return this.companyModel.findOne().exec();
   }
 
-  protected categoryInfo({_id}: MarketplaceModel): Promise<MarketplaceCategoryModel[]> {
+  protected categoryInfo({ _id }: MarketplaceModel): Promise<MarketplaceCategoryModel[]> {
     return this.categoryModel
       .aggregate()
       .match({
@@ -60,7 +71,7 @@ export abstract class MarketplaceService {
       }).exec();
   }
 
-  protected productInfo({_id, specialPriceName, productTypes}: MarketplaceModel): Promise<MarketplaceProductModel[]> {
+  protected productInfo({ _id, specialPriceName, productTypes }: MarketplaceModel): Promise<MarketplaceProductModel[]> {
 
     return this.productModel
       .aggregate()

@@ -15,10 +15,16 @@ export class MesoIntegration {
 
   private readonly logger = new Logger(MesoIntegration.name);
 
-  async sendCatalog(catalog: MesoCatalogApiModel) {
+  async sendCatalog(catalog: MesoCatalogApiModel): Promise<boolean> {
 
     const url = `${this.baseUrl}/api/store/integration/catalog/upload`;
     const token = await this.getToken();
+
+    if (token){
+      return true;
+    }
+    return false;
+
     let success = false;
 
     if (token === '')
