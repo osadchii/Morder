@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Post, UseGuards } from '@nestjs/common';
 import { CompanyDto } from './dto/company.dto';
 import { CompanyService } from './company.service';
 import { COMPANY_NOT_FOUND_ERROR } from './company.constants';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('company')
 export class CompanyController {
 

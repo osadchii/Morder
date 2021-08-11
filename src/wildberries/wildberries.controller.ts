@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { MARKETPLACE_NOT_FOUND } from '../marketplace/marketplace.constants';
 import { WildberriesService } from './wildberries.service';
 import { WildberriesDto } from './dto/wildberries.dto';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('wildberries')
 export class WildberriesController {
   constructor(private readonly marketplaceService: WildberriesService) {

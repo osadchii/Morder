@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { YandexMarketService } from './yandexmarket.service';
 import { YandexMarketDto } from './dto/yandexmarket.dto';
 import { MARKETPLACE_NOT_FOUND } from '../marketplace/marketplace.constants';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('yandexmarket')
 export class YandexMarketController {
   constructor(private readonly yandexMarketService: YandexMarketService) {

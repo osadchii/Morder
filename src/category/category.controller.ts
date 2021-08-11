@@ -6,13 +6,15 @@ import {
   HttpCode,
   NotFoundException,
   Param,
-  Post,
+  Post, UseGuards,
 } from '@nestjs/common';
 import { CategoryDto } from './dto/category.dto';
 import { CategoryService } from './category.service';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR } from './category.constants';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('category')
 export class CategoryController {
 

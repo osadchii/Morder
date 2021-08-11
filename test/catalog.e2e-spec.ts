@@ -17,6 +17,7 @@ import {
   updateStockDto,
 } from './catalog.test-entity';
 import { E2EUtil } from './e2e.util';
+import { testUser } from './auth.test-entity';
 
 E2EUtil.MockScheduleServices();
 
@@ -26,6 +27,7 @@ describe('Product catalog (e2e)', () => {
   let parentCategoryId: string;
   let childCategoryId: string;
   let productId: string;
+  let token: string;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -37,6 +39,11 @@ describe('Product catalog (e2e)', () => {
       whitelist: true,
     }));
     await app.init();
+
+    const { body } = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(testUser);
+    token = body.access_token;
   });
 
   // CREATE CATEGORIES
@@ -45,6 +52,7 @@ describe('Product catalog (e2e)', () => {
     return request(app.getHttpServer())
       .post('/category/post')
       .send(parentCategoryDto)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         parentCategoryId = body._id;
@@ -57,6 +65,7 @@ describe('Product catalog (e2e)', () => {
     return request(app.getHttpServer())
       .post('/category/post')
       .send(childCategoryDto)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         childCategoryId = body._id;
@@ -70,6 +79,7 @@ describe('Product catalog (e2e)', () => {
   it('/category/ Get all categories - Success', async (done) => {
     return request(app.getHttpServer())
       .get('/category/')
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         expect(body.length > 1);
@@ -80,6 +90,7 @@ describe('Product catalog (e2e)', () => {
   it('/category/getById/:id Get child category - Success', async (done) => {
     return request(app.getHttpServer())
       .get('/category/getById/' + childCategoryId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         expect(body.parentCode).toBeDefined();
@@ -90,6 +101,7 @@ describe('Product catalog (e2e)', () => {
   it('/category/getById/:id Get child category - Fail',() => {
     return request(app.getHttpServer())
       .get('/category/getById/' + randomId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(404);
   });
 
@@ -98,6 +110,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/post Create product with wrong category - Fail', () => {
     return request(app.getHttpServer())
       .post('/product/post')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...productDto, categoryCode: 'wrongCategoryCode' })
       .expect(422);
   });
@@ -105,6 +118,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/post Create product - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/post')
+      .set('Authorization', 'Bearer ' + token)
       .send(productDto)
       .expect(200)
       .then(({ body }) => {
@@ -117,6 +131,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/post Create product with not unique articul - Fail', () => {
     return request(app.getHttpServer())
       .post('/product/post')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...productDto, erpCode: 'New test erp code' })
       .expect(422);
   });
@@ -126,6 +141,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/getPage Get product page - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/getPage')
+      .set('Authorization', 'Bearer ' + token)
       .send({
         offset: 0,
         limit: 5,
@@ -140,6 +156,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/getById/:id Get product by id - Success', async (done) => {
     return request(app.getHttpServer())
       .get('/product/getById/' + productId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         expect(body.articul).toBeDefined();
@@ -150,12 +167,14 @@ describe('Product catalog (e2e)', () => {
   it('/product/getById/:id Get product by id - Fail', () => {
     return request(app.getHttpServer())
       .get('/product/getById/' + randomId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(404);
   });
 
   it('/product/getByErpCode/:erpCode Get product by erpCode - Success', async (done) => {
     return request(app.getHttpServer())
       .get('/product/getByErpCode/' + productDto.erpCode)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
         expect(body.articul).toBeDefined();
@@ -168,6 +187,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/post Update product - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/post')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...productDto, name: newProductName })
       .expect(200)
       .then(({ body }) => {
@@ -181,6 +201,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setStock Update stock - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setStock')
+      .set('Authorization', 'Bearer ' + token)
       .send(updateStockDto)
       .expect(200)
       .then(({ body }) => {
@@ -193,6 +214,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setStock Update negative stock - Fail', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setStock')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...updateStockDto, stock: -1 })
       .expect(400)
       .then(({ body }) => {
@@ -206,6 +228,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/stocks Get stocks - Success', async (done) => {
     return request(app.getHttpServer())
       .get('/product/stocks')
+      .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => checkStocks(body, done));
   });
@@ -213,6 +236,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/stocksByArticuls Get stocks by articuls - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/stocksByArticuls')
+      .set('Authorization', 'Bearer ' + token)
       .send(checkStocksArticuls)
       .expect(200)
       .then(({ body }) => checkStocks(body, done));
@@ -223,6 +247,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setBasePrice Update base price - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setBasePrice')
+      .set('Authorization', 'Bearer ' + token)
       .send(updateBasePriceDto)
       .expect(200)
       .then(({ body }) => {
@@ -235,6 +260,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setBasePrice Update negative base price - Fail', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setBasePrice')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...updateBasePriceDto, price: -1 })
       .expect(400)
       .then(({ body }) => {
@@ -246,6 +272,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setSpecialPrice Update special price - Success', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setSpecialPrice')
+      .set('Authorization', 'Bearer ' + token)
       .send(updateSpecialPriceDto)
       .expect(200)
       .then(({ body }) => {
@@ -262,6 +289,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/setSpecialPrice Update negative special price - Fail', async (done) => {
     return request(app.getHttpServer())
       .post('/product/setSpecialPrice')
+      .set('Authorization', 'Bearer ' + token)
       .send({ ...updateSpecialPriceDto, price: -1 })
       .expect(400)
       .then(({ body }) => {
@@ -275,6 +303,7 @@ describe('Product catalog (e2e)', () => {
   it('/product/:id Delete product - Success', () => {
     return request(app.getHttpServer())
       .delete('/product/' + productId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200);
   });
 
@@ -283,12 +312,14 @@ describe('Product catalog (e2e)', () => {
   it('/category/:id Delete child category - Success', () => {
     return request(app.getHttpServer())
       .delete('/category/' + childCategoryId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200);
   });
 
   it('/category/:id Delete parent category - Success', () => {
     return request(app.getHttpServer())
       .delete('/category/' + parentCategoryId)
+      .set('Authorization', 'Bearer ' + token)
       .expect(200);
   });
 

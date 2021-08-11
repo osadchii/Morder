@@ -1,11 +1,17 @@
 import {
   Body,
-  Controller, Delete,
+  Controller,
+  Delete,
   Get,
-  HttpCode, HttpException,
+  HttpCode,
+  HttpException,
   NotFoundException,
   Param,
-  Post, Res, UploadedFile, UseInterceptors,
+  Post,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductDto } from './dto/product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
@@ -17,7 +23,9 @@ import { CategoryService } from '../category/category.service';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('product')
 export class ProductController {
 

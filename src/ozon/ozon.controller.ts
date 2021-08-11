@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { MARKETPLACE_NOT_FOUND } from '../marketplace/marketplace.constants';
 import { OzonService } from './ozon.service';
 import { OzonDto } from './dto/ozon.dto';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('ozon')
 export class OzonController {
   constructor(private readonly marketplaceService: OzonService) {

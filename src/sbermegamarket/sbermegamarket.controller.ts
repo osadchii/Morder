@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { SberMegaMarketService } from './sbermegamarket.service';
 import { SberMegaMarketDto } from './dto/sbermegamarket.dto';
 import { IdValidationPipe } from '../pipes/id-validation-pipe';
 import { MARKETPLACE_NOT_FOUND } from '../marketplace/marketplace.constants';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('sbermegamarket')
 export class SberMegaMarketController {
   constructor(private readonly sberMegaMarketService: SberMegaMarketService) {
