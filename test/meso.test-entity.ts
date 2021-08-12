@@ -1,4 +1,4 @@
-import { MesoDto } from '../src/meso/dto/meso.dto';
+import { MesoDto } from '../src/marketplace/meso/dto/meso.dto';
 
 export const mesoTestEntity: MesoDto = {
   catalogSendInterval: 1,

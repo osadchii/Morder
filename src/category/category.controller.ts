@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { CategoryDto } from './dto/category.dto';
 import { CategoryService } from './category.service';
-import { IdValidationPipe } from '../pipes/id-validation-pipe';
+import { IdValidationPipe } from '../infrastructure/pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR } from './category.constants';
-import { JwtAuthGuard } from '../guards/jwt.guard';
+import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('category')

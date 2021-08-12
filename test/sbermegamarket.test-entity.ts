@@ -1,4 +1,4 @@
-import { SberMegaMarketDto } from '../src/sbermegamarket/dto/sbermegamarket.dto';
+import { SberMegaMarketDto } from '../src/marketplace/sbermegamarket/dto/sbermegamarket.dto';
 
 export const sberMegaMarketDto: SberMegaMarketDto = {
   productTypes: [],

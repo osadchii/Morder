@@ -1,4 +1,4 @@
-import { WildberriesDto } from '../src/wildberries/dto/wildberries.dto';
+import { WildberriesDto } from '../src/marketplace/wildberries/dto/wildberries.dto';
 
 export const wildberriesTestEntity: WildberriesDto = {
   productTypes: [],

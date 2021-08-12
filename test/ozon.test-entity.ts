@@ -1,4 +1,4 @@
-import { OzonDto } from '../src/ozon/dto/ozon.dto';
+import { OzonDto } from '../src/marketplace/ozon/dto/ozon.dto';
 
 export const ozonTestEntity: OzonDto = {
   productTypes: [],

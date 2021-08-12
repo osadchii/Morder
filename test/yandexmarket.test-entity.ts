@@ -1,4 +1,4 @@
-import { YandexMarketDto } from '../src/yandexmarket/dto/yandexmarket.dto';
+import { YandexMarketDto } from '../src/marketplace/yandexmarket/dto/yandexmarket.dto';
 
 export const yandexMarketDto: YandexMarketDto = {
   productTypes: [],

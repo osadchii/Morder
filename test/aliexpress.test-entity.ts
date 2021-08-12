@@ -1,4 +1,4 @@
-import { AliexpressDto } from '../src/aliexpress/dto/aliexpress.dto';
+import { AliexpressDto } from '../src/marketplace/aliexpress/dto/aliexpress.dto';
 
 export const aliexpressTestEntity: AliexpressDto = {
   productTypes: [],

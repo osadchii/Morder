@@ -16,14 +16,14 @@ import {
 import { ProductDto } from './dto/product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
 import { ProductService } from './product.service';
-import { IdValidationPipe } from '../pipes/id-validation-pipe';
+import { IdValidationPipe } from '../infrastructure/pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
 import { SetStockDto } from './dto/set-stock.dto';
 import { CategoryService } from '../category/category.service';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '../guards/jwt.guard';
+import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('product')

@@ -3,5 +3,6 @@ export class E2EUtil {
     jest.mock('../src/sbermegamarket/sbermegamarket.feed.service');
     jest.mock('../src/yandexmarket/yandexmarket.feed.service');
     jest.mock('../src/ozon/ozon.feed.service');
+    jest.mock('../src/marketplace/meso/meso.integration.service');
   }
 }
