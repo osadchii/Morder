@@ -1,21 +1,17 @@
-import { IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 
 export class CompanyDto {
 
+  @IsNotEmpty()
   @IsString()
   shopName: string;
 
+  @IsNotEmpty()
   @IsString()
   companyName: string;
 
+  @IsNotEmpty()
   @IsUrl()
   url: string;
-
-  @IsString()
-  @MaxLength(12)
-  inn: string;
-
-  @IsString()
-  kpp: string;
 
 }

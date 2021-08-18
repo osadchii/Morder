@@ -14,10 +14,4 @@ export class CompanyModel extends TimeStamps {
 
   @prop()
   url: string;
-
-  @prop()
-  inn: string;
-
-  @prop()
-  kpp: string;
 }
