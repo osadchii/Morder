@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductType, Vat } from '../product.model';
 
@@ -11,6 +11,7 @@ class ProductCharacteristicDto {
 
 export class ProductDto {
 
+  @IsNotEmpty()
   @IsString()
   name: string;
 
