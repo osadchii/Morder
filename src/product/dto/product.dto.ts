@@ -15,9 +15,11 @@ export class ProductDto {
   @IsString()
   name: string;
 
+  @IsNotEmpty()
   @IsString()
   articul: string;
 
+  @IsNotEmpty()
   @IsString()
   erpCode: string;
 
@@ -36,6 +38,7 @@ export class ProductDto {
   @IsString()
   countryOfOrigin?: string;
 
+  @IsNotEmpty()
   @IsString()
   barcode: string;
 

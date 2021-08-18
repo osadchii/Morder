@@ -7,7 +7,10 @@ import { SetStockDto } from './dto/set-stock.dto';
 import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { ConfigService } from '@nestjs/config';
-import { FILE_IS_NOT_IMAGE, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
+import {
+  FILE_IS_NOT_IMAGE,
+  PRODUCT_NOT_FOUND_ERROR,
+} from './product.constants';
 import { createReadStream } from 'fs';
 import { ProductImageHelper } from './product.image';
 
@@ -17,34 +20,13 @@ export class ProductService {
     @InjectModel(ProductModel)
     private readonly productModel: ModelType<ProductModel>,
     private readonly configService: ConfigService,
-  ) {
-  }
+  ) {}
 
   // Base actions
 
   async getById(id: string) {
-    return this.productModel.findById(id, {
-      stock: 0,
-      price: 0,
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0,
-    }).exec();
-  }
-
-  async getByErpCode(erpCode: string) {
     return this.productModel
-      .findOne({ erpCode }).exec();
-  }
-
-  async getProductsWithOffsetLimit(offset: number, limit: number) {
-    return this.productModel.aggregate()
-      .sort({ _id: 1 })
-      .limit(limit)
-      .skip(offset)
-      .project({
-        stock: 0,
-        price: 0,
+      .findById(id, {
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
@@ -52,19 +34,53 @@ export class ProductService {
       .exec();
   }
 
+  async getByErpCode(erpCode: string) {
+    return this.productModel.findOne({ erpCode }).exec();
+  }
+
+  async getProductsWithOffsetLimit(offset: number, limit: number) {
+    const filter = {
+      isDeleted: false,
+    };
+    const products = await this.productModel
+      .aggregate()
+      .match(filter)
+      .sort({ _id: 1 })
+      .limit(limit)
+      .skip(offset)
+      .project({
+        characteristics: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+      })
+      .exec();
+
+    const total = await this.productModel
+      .find(filter)
+      .countDocuments()
+      .exec();
+
+    return {
+      items: products,
+      count: total,
+    };
+  }
+
   async createOrUpdate(dto: ProductDto) {
     const { erpCode } = dto;
-    return this.productModel.findOneAndUpdate({ erpCode }, dto, {
-      upsert: true,
-      new: true,
-      useFindAndModify: false,
-      projection: {
-        __v: 0,
-        updatedAt: 0,
-        createdAt: 0,
-      },
-    }).catch((error) =>
-      ProductService.CatchNotUniqueValueError(error));
+    return this.productModel
+      .findOneAndUpdate({ erpCode }, dto, {
+        upsert: true,
+        new: true,
+        useFindAndModify: false,
+        projection: {
+          __v: 0,
+          updatedAt: 0,
+          createdAt: 0,
+        },
+      })
+      .catch((error) => ProductService.CatchNotUniqueValueError(error));
   }
 
   async deleteById(id: string) {
@@ -75,7 +91,8 @@ export class ProductService {
 
   async updateStock({ erpCode, stock }: SetStockDto) {
     return this.productModel
-      .findOneAndUpdate({
+      .findOneAndUpdate(
+        {
           erpCode,
         },
         {
@@ -90,14 +107,16 @@ export class ProductService {
             erpCode: 1,
             stock: 1,
           },
-        }).exec();
+        },
+      )
+      .exec();
   }
 
   async getStocks(articuls?: string[]) {
     interface matchType {
       isDeleted: boolean;
-      stock: { $exists: boolean },
-      articul?: { $in: string[] }
+      stock: { $exists: boolean };
+      articul?: { $in: string[] };
     }
 
     let match: matchType = {
@@ -111,7 +130,8 @@ export class ProductService {
         }),
       };
     }
-    return this.productModel.aggregate()
+    return this.productModel
+      .aggregate()
       .match(match)
       .sort({
         articul: 1,
@@ -121,35 +141,42 @@ export class ProductService {
         articul: 1,
         erpCode: 1,
         stock: 1,
-      }).exec();
+      })
+      .exec();
   }
 
   // Price actions
 
   async updateBasePrice({ erpCode, price }: SetPriceDto) {
     return this.productModel
-      .findOneAndUpdate({
-        erpCode,
-      }, {
-        price,
-      }, {
-        new: true,
-        useFindAndModify: false,
-        projection: {
-          _id: 1,
-          articul: 1,
-          erpCode: 1,
-          price: 1,
+      .findOneAndUpdate(
+        {
+          erpCode,
         },
-      }).exec();
+        {
+          price,
+        },
+        {
+          new: true,
+          useFindAndModify: false,
+          projection: {
+            _id: 1,
+            articul: 1,
+            erpCode: 1,
+            price: 1,
+          },
+        },
+      )
+      .exec();
   }
 
   async updateSpecialPrice({ erpCode, priceName, price }: SetSpecialPriceDto) {
-    const product = await this.productModel
-      .findOne({ erpCode },
-        {
-          specialPrices: 1,
-        });
+    const product = await this.productModel.findOne(
+      { erpCode },
+      {
+        specialPrices: 1,
+      },
+    );
 
     if (!product) {
       return product;
@@ -174,20 +201,25 @@ export class ProductService {
     }
 
     return this.productModel
-      .findOneAndUpdate({
-        erpCode,
-      }, {
-        specialPrices: product.specialPrices,
-      }, {
-        new: true,
-        useFindAndModify: false,
-        projection: {
-          _id: 1,
-          articul: 1,
-          erpCode: 1,
-          specialPrices: 1,
+      .findOneAndUpdate(
+        {
+          erpCode,
         },
-      }).exec();
+        {
+          specialPrices: product.specialPrices,
+        },
+        {
+          new: true,
+          useFindAndModify: false,
+          projection: {
+            _id: 1,
+            articul: 1,
+            erpCode: 1,
+            specialPrices: 1,
+          },
+        },
+      )
+      .exec();
   }
 
   // Images
@@ -198,10 +230,9 @@ export class ProductService {
       throw new HttpException(FILE_IS_NOT_IMAGE, 400);
     }
 
-    const productExists = await this.productModel
-      .exists({
-        erpCode,
-      });
+    const productExists = await this.productModel.exists({
+      erpCode,
+    });
 
     if (!productExists) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
@@ -210,32 +241,33 @@ export class ProductService {
     const filePath = ProductImageHelper.ImagePath(this.configService);
     await ProductImageHelper.SaveFile(filePath, erpCode, file.buffer);
 
-    return this.productModel
-      .findOneAndUpdate({ erpCode },
-        { image: erpCode }, {
-          new: true,
-          useFindAndModify: false,
-          projection: {
-            erpCode: 1,
-            image: 1,
-          },
+    return this.productModel.findOneAndUpdate(
+      { erpCode },
+      { image: erpCode },
+      {
+        new: true,
+        useFindAndModify: false,
+        projection: {
+          erpCode: 1,
+          image: 1,
         },
-      );
+      },
+    );
   }
 
   async getImage(erpCode: string) {
-
-    const product = await this.productModel
-      .findOne({ erpCode },
-        {
-          image: 1,
-        });
+    const product = await this.productModel.findOne(
+      { erpCode },
+      {
+        image: 1,
+      },
+    );
 
     if (!product) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
     }
 
-    let fullFileName = 'content/picture/no-image.png'
+    let fullFileName = 'content/picture/no-image.png';
     if (product.image) {
       const imagePath = ProductImageHelper.ImagePath(this.configService);
       fullFileName = ProductImageHelper.FullFileName(imagePath, product.image);
@@ -247,17 +279,17 @@ export class ProductService {
   // Error handlers
 
   static CatchNotUniqueValueError(error) {
-    if (error.code != 11000)
-      throw error;
+    if (error.code != 11000) throw error;
 
     let messages: string[] = [];
 
     for (let key in error.keyValue) {
       if (error.keyValue.hasOwnProperty(key)) {
-        messages.push(`Value \'${error.keyValue[key]}\' is not unique for \'${key}\' field`);
+        messages.push(
+          `Value \'${error.keyValue[key]}\' is not unique for \'${key}\' field`,
+        );
       }
     }
     throw new HttpException(messages.join('\n'), 422);
   }
-
 }

@@ -148,7 +148,7 @@ describe('Product catalog (e2e)', () => {
       })
       .expect(200)
       .then(({ body }) => {
-        expect(body.length > 0);
+        expect(body.items.length > 0);
         done();
       });
   });
