@@ -3,6 +3,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { CategoryModel } from './category.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryDto } from './dto/category.dto';
+import { GetByParentCategoryDto } from './dto/getbyparent.category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -19,7 +20,7 @@ export class CategoryService {
     return this.categoryModel.findById(id).exec();
   }
 
-  async getByParentCode(parentCode: string) {
+  async getByParentCode({ parentCode }: GetByParentCategoryDto) {
     return this.categoryModel
       .find({
         parentCode: parentCode,

@@ -14,6 +14,7 @@ import { CategoryService } from './category.service';
 import { IdValidationPipe } from '../infrastructure/pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR } from './category.constants';
 import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
+import { GetByParentCategoryDto } from './dto/getbyparent.category.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('category')
@@ -40,9 +41,10 @@ export class CategoryController {
     return category;
   }
 
-  @Get('getByParentCode/:parentCode')
-  async getByParentCode(@Param('parentCode') parentCode: string) {
-    return this.categoryService.getByParentCode(parentCode);
+  @Post('getByParentCode/')
+  @HttpCode(200)
+  async getByParentCode(@Body() dto: GetByParentCategoryDto) {
+    return this.categoryService.getByParentCode(dto);
   }
 
   @Get('getByErpCode/:erpCode')

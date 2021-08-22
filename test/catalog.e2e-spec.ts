@@ -98,13 +98,16 @@ describe('Product catalog (e2e)', () => {
       });
   });
 
-  it('/category/getByParentCode/:parentCode Get categories by parent - Success', async (done) => {
+  it('/category/getByParentCode/ Get categories by parent - Success', async (done) => {
     return request(app.getHttpServer())
-      .get('/category/getByParentCode/' + parentCategoryDto.erpCode)
+      .post('/category/getByParentCode/')
+      .send({
+        parentCode: parentCategoryDto.erpCode,
+      })
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .then(({ body }) => {
-        expect(body.length > 0)
+        expect(body.length > 0);
         done();
       });
   });
