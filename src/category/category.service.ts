@@ -9,8 +9,7 @@ export class CategoryService {
   constructor(
     @InjectModel(CategoryModel)
     private readonly categoryModel: ModelType<CategoryModel>,
-  ) {
-  }
+  ) {}
 
   async getAll() {
     return this.categoryModel.find({}).exec();
@@ -20,10 +19,20 @@ export class CategoryService {
     return this.categoryModel.findById(id).exec();
   }
 
+  async getByParentCode(parentCode: string) {
+    return this.categoryModel
+      .find({
+        parentCode: parentCode,
+      })
+      .exec();
+  }
+
   async getByErpCode(erpCode: string) {
-    return this.categoryModel.findOne({
-      erpCode,
-    }).exec();
+    return this.categoryModel
+      .findOne({
+        erpCode,
+      })
+      .exec();
   }
 
   async createOrUpdate(dto: CategoryDto) {
