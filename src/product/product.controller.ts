@@ -17,7 +17,10 @@ import { ProductDto } from './dto/product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
 import { ProductService } from './product.service';
 import { IdValidationPipe } from '../infrastructure/pipes/id-validation-pipe';
-import { CATEGORY_NOT_FOUND_ERROR, PRODUCT_NOT_FOUND_ERROR } from './product.constants';
+import {
+  CATEGORY_NOT_FOUND_ERROR,
+  PRODUCT_NOT_FOUND_ERROR,
+} from './product.constants';
 import { SetStockDto } from './dto/set-stock.dto';
 import { CategoryService } from '../category/category.service';
 import { SetPriceDto } from './dto/set-price.dto';
@@ -28,10 +31,10 @@ import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('product')
 export class ProductController {
-
-  constructor(private readonly productService: ProductService,
-              private readonly categoryService: CategoryService) {
-  }
+  constructor(
+    private readonly productService: ProductService,
+    private readonly categoryService: CategoryService,
+  ) {}
 
   // PRODUCTS
 
@@ -58,8 +61,8 @@ export class ProductController {
   // Get products page
   @Post('getPage')
   @HttpCode(200)
-  async get(@Body() { offset, limit }: GetProductsDto) {
-    return this.productService.getProductsWithOffsetLimit(offset, limit);
+  async get(@Body() dto: GetProductsDto) {
+    return this.productService.getProductsWithOffsetLimit(dto);
   }
 
   // Create or update product. Looking for erp code
@@ -67,7 +70,9 @@ export class ProductController {
   @HttpCode(200)
   async post(@Body() dto: ProductDto) {
     if (dto.categoryCode) {
-      const category = await this.categoryService.getByErpCode(dto.categoryCode);
+      const category = await this.categoryService.getByErpCode(
+        dto.categoryCode,
+      );
       if (!category) {
         throw new HttpException(CATEGORY_NOT_FOUND_ERROR, 422);
       }
@@ -136,8 +141,10 @@ export class ProductController {
   @Post('image/:erpCode')
   @UseInterceptors(FileInterceptor('image'))
   @HttpCode(200)
-  async uploadImage(@Param('erpCode') erpCode: string,
-                    @UploadedFile() file: Express.Multer.File) {
+  async uploadImage(
+    @Param('erpCode') erpCode: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     const updatedProduct = this.productService.uploadImage(erpCode, file);
     if (!updatedProduct) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
@@ -149,5 +156,4 @@ export class ProductController {
   async getImage(@Param('erpCode') erpCode: string, @Res() response) {
     return (await this.productService.getImage(erpCode)).pipe(response);
   }
-
 }

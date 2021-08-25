@@ -13,6 +13,7 @@ import {
 } from './product.constants';
 import { createReadStream } from 'fs';
 import { ProductImageHelper } from './product.image';
+import { GetProductsDto } from './dto/get-products.dto';
 
 @Injectable()
 export class ProductService {
@@ -38,9 +39,14 @@ export class ProductService {
     return this.productModel.findOne({ erpCode }).exec();
   }
 
-  async getProductsWithOffsetLimit(offset: number, limit: number) {
+  async getProductsWithOffsetLimit({
+                                     limit,
+                                     offset,
+                                     categoryCode,
+                                   }: GetProductsDto) {
     const filter = {
       isDeleted: false,
+      categoryCode: categoryCode,
     };
     const products = await this.productModel
       .aggregate()
@@ -56,10 +62,7 @@ export class ProductService {
       })
       .exec();
 
-    const total = await this.productModel
-      .find(filter)
-      .countDocuments()
-      .exec();
+    const total = await this.productModel.find(filter).countDocuments().exec();
 
     return {
       items: products,
