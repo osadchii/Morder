@@ -13,4 +13,8 @@ export class GetProductsDto {
   @IsString()
   @IsOptional()
   categoryCode?: string;
+
+  @IsString()
+  @IsOptional()
+  text?: string;
 }

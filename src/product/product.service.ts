@@ -45,6 +45,7 @@ export class ProductService {
     interface FilterInterface {
       isDeleted: boolean;
       categoryCode?: string;
+      $text?: { $search: string };
     }
 
     const filter: FilterInterface = {
@@ -53,6 +54,10 @@ export class ProductService {
 
     if (typeof dto.categoryCode !== 'undefined') {
       filter.categoryCode = dto.categoryCode;
+    }
+
+    if (typeof dto.text !== 'undefined') {
+      filter.$text = { $search: dto.text };
     }
 
     const products = await this.productModel
