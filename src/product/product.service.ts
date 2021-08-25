@@ -39,15 +39,22 @@ export class ProductService {
     return this.productModel.findOne({ erpCode }).exec();
   }
 
-  async getProductsWithOffsetLimit({
-                                     limit,
-                                     offset,
-                                     categoryCode,
-                                   }: GetProductsDto) {
-    const filter = {
+  async getProductsWithOffsetLimit(dto: GetProductsDto) {
+    const { limit, offset } = dto;
+
+    interface FilterInterface {
+      isDeleted: boolean;
+      categoryCode?: string;
+    }
+
+    const filter: FilterInterface = {
       isDeleted: false,
-      categoryCode: categoryCode,
     };
+
+    if (dto.categoryCode) {
+      filter.categoryCode = dto.categoryCode;
+    }
+
     const products = await this.productModel
       .aggregate()
       .match(filter)
