@@ -45,7 +45,12 @@ export class ProductService {
     interface FilterInterface {
       isDeleted: boolean;
       categoryCode?: string;
-      $text?: { $search: string };
+      $or?: [
+        { articul: RegExp },
+        { name: RegExp },
+        { brand: RegExp },
+        { barcode: RegExp },
+      ];
     }
 
     const filter: FilterInterface = {
@@ -57,7 +62,13 @@ export class ProductService {
     }
 
     if (typeof dto.text !== 'undefined') {
-      filter.$text = { $search: dto.text };
+      const regExp = new RegExp(dto.text, 'gi');
+      filter.$or = [
+        { articul: regExp },
+        { name: regExp },
+        { brand: regExp },
+        { barcode: regExp },
+      ];
     }
 
     const products = await this.productModel
