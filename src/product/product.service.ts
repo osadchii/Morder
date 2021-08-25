@@ -51,7 +51,7 @@ export class ProductService {
       isDeleted: false,
     };
 
-    if (dto.categoryCode) {
+    if (typeof dto.categoryCode !== 'undefined') {
       filter.categoryCode = dto.categoryCode;
     }
 
