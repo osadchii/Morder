@@ -59,8 +59,8 @@ export class ProductService {
       .aggregate()
       .match(filter)
       .sort({ _id: 1 })
-      .limit(limit)
       .skip(offset)
+      .limit(limit)
       .project({
         characteristics: 0,
         createdAt: 0,
