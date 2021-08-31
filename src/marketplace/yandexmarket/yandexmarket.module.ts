@@ -9,6 +9,7 @@ import { YandexMarketModel } from './yandexmarket.model';
 import { YandexMarketFeedService } from './yandexmarket.feed.service';
 import { HttpModule } from '@nestjs/axios';
 import { getHttpConfig } from '../../infrastructure/configs/http.config';
+import { YandexMarketIntegrationService } from './yandexmarket.integration.service';
 
 @Module({
   controllers: [YandexMarketController],
@@ -49,6 +50,10 @@ import { getHttpConfig } from '../../infrastructure/configs/http.config';
       useFactory: getHttpConfig,
     }),
   ],
-  providers: [YandexMarketService, YandexMarketFeedService],
+  providers: [
+    YandexMarketService,
+    YandexMarketFeedService,
+    YandexMarketIntegrationService,
+  ],
 })
 export class YandexMarketModule {}
