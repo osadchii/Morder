@@ -64,7 +64,7 @@ export class YandexMarketIntegration {
   ): Promise<YandexMarketSkuPageModel> {
     const { campaignId } = this.settings;
 
-    const pageParameter = nextPageToken ? `&?page_token=${nextPageToken}` : '';
+    const pageParameter = nextPageToken ? `&page_token=${nextPageToken}` : '';
     const url = `${this.baseUrl}/${campaignId}/offer-mapping-entries.json?status=READY${pageParameter}`;
 
     const result: YandexMarketSkuPageModel = {
