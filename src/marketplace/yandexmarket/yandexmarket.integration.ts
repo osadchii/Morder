@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
+import { Logger } from '@nestjs/common';
 
 interface YandexMarketSkuPageModel {
   nextPageToken?: string;
@@ -28,6 +29,7 @@ interface YandexMarketSkuPageResponse {
 }
 
 export class YandexMarketIntegration {
+  private readonly logger = new Logger(YandexMarketIntegration.name);
   private readonly baseUrl =
     'https://api.partner.market.yandex.ru/v2/campaigns';
 
@@ -53,6 +55,7 @@ export class YandexMarketIntegration {
       }
     }
 
+    this.logger.log(`Got ${map.size} yandex.market skus`);
     return map;
   }
 
@@ -90,6 +93,11 @@ export class YandexMarketIntegration {
           }
           result.items.set(item.offer.shokSku, item.mapping.marketSku);
         });
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Can't get yandex.market skus.\nError ${error.toString()}`,
+        );
       });
 
     return result;
