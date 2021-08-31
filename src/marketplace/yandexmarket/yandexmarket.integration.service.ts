@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MarketplaceService } from '../marketplace.service';
 import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
@@ -13,6 +13,7 @@ import { YandexMarketIntegration } from './yandexmarket.integration';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
+  private readonly logger = new Logger(YandexMarketIntegrationService.name);
   constructor(
     @InjectModel(YandexMarketModel)
     private readonly marketplaceModel: ModelType<YandexMarketModel>,
@@ -28,11 +29,14 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     super(companyModel, categoryModel, productModel, configService);
   }
 
-  @Interval(24 * 60 * 60 * 1000)
+  @Interval(10000)
   async updateYandexMarketSkus() {
     const settings = await this.activeSettings();
 
+    this.logger.log(`Got ${settings.length} yandex.market active settings`);
+
     for (const item of settings) {
+      this.logger.log(`Start ${item.name} yandex.market getting skus`);
       const service = new YandexMarketIntegration(item, this.httpService);
       const map = await service.getYandexMarketSkus();
       for (const item of map) {

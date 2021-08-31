@@ -93,6 +93,9 @@ export class YandexMarketIntegration {
           }
           result.items.set(item.offer.shokSku, item.mapping.marketSku);
         });
+
+        this.logger.log(`Got ${result.items.size} yandex.market skus`);
+        this.logger.log(`Next page ${result.nextPageToken}`);
       })
       .catch((error) => {
         this.logger.error(
