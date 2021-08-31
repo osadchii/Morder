@@ -65,7 +65,7 @@ export class YandexMarketIntegration {
     const { campaignId } = this.settings;
 
     const pageParameter = nextPageToken ? `?page_token=${nextPageToken}` : '';
-    const url = `${this.baseUrl}/${campaignId}/offer-mapping-entries/${pageParameter}`;
+    const url = `${this.baseUrl}/${campaignId}/offer-mapping-entries.json${pageParameter}`;
 
     const result: YandexMarketSkuPageModel = {
       items: new Map<string, number>(),
@@ -98,9 +98,7 @@ export class YandexMarketIntegration {
         this.logger.log(`Next page ${result.nextPageToken}`);
       })
       .catch((error) => {
-        this.logger.error(
-          `Can't get yandex.market skus.\nError ${error.toString()}`,
-        );
+        this.logger.error(`Can't get yandex.market skus.\nError ${error}`);
       });
 
     return result;
