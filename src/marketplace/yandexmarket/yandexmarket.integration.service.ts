@@ -39,6 +39,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       this.logger.log(`Start ${item.name} yandex.market getting skus`);
       const service = new YandexMarketIntegration(item, this.httpService);
       const map = await service.getYandexMarketSkus();
+      this.logger.log(`Got ${map.size} yandex.market total skus`);
       for (const item of map) {
         await this.setYandexMarketSku(item[0], item[1]);
       }
