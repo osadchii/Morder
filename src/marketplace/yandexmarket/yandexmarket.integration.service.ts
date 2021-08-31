@@ -54,6 +54,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       {
         yandexMarketSku: sku,
       },
+      {
+        useFindAndModify: false,
+      },
     );
   }
 
