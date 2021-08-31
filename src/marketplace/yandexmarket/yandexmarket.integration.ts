@@ -12,7 +12,7 @@ interface YandexMarketSkuPageResponse {
   result?: {
     offerMappingEntries: {
       offer: {
-        shokSku: string;
+        shopSku: string;
       };
       mapping?: {
         marketSku: number;
@@ -91,7 +91,7 @@ export class YandexMarketIntegration {
           if (!item.mapping) {
             return;
           }
-          result.items.set(item.offer.shokSku, item.mapping.marketSku);
+          result.items.set(item.offer.shopSku, item.mapping.marketSku);
         });
 
         this.logger.log(`Got ${result.items.size} yandex.market skus`);
