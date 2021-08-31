@@ -29,7 +29,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     super(companyModel, categoryModel, productModel, configService);
   }
 
-  @Interval(10000)
+  @Interval(24 * 60 * 60 * 1000)
   async updateYandexMarketSkus() {
     const settings = await this.activeSettings();
 
