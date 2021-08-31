@@ -3,11 +3,9 @@ import { prop } from '@typegoose/typegoose';
 import { MarketplaceModel } from '../marketplace.model';
 import { ProductType } from '../../product/product.model';
 
-export interface YandexMarketModel extends Base {
-}
+export interface YandexMarketModel extends Base {}
 
 export class YandexMarketModel extends TimeStamps implements MarketplaceModel {
-
   @prop()
   name: string;
 
@@ -16,6 +14,15 @@ export class YandexMarketModel extends TimeStamps implements MarketplaceModel {
 
   @prop()
   nullifyStocks: boolean;
+
+  @prop()
+  campaignId: string;
+
+  @prop()
+  authToken: string;
+
+  @prop()
+  clientId: string;
 
   @prop()
   specialPriceName?: string;

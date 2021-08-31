@@ -4,6 +4,8 @@ import { CategoryModel } from './category.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryDto } from './dto/category.dto';
 import { GetByParentCategoryDto } from './dto/getbyparent.category.dto';
+import { SetMarketplaceBlockingCategoryDto } from './dto/setmarketplacesettings.category.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class CategoryService {
@@ -47,6 +49,84 @@ export class CategoryService {
         updatedAt: 0,
         createdAt: 0,
       },
+    });
+  }
+
+  async setMarketplaceSettings(dto: SetMarketplaceBlockingCategoryDto) {
+    if (dto.nested) {
+      return this.setMarketplaceSettingsNested(dto);
+    } else {
+      return this.setMarketplaceSettingsDirectly(dto);
+    }
+  }
+
+  private async setMarketplaceSettingsDirectly(
+    dto: SetMarketplaceBlockingCategoryDto,
+  ) {
+    const category = await this.categoryModel.findOne({
+      erpCode: dto.erpCode,
+    });
+
+    this.setMarketplaceBlockedValue(category, dto.marketplaceId, dto.blocked);
+
+    await category.save();
+  }
+
+  private async setMarketplaceSettingsNested(
+    dto: SetMarketplaceBlockingCategoryDto,
+  ) {
+    const dbEntry = await this.categoryModel
+      .aggregate()
+      .match({
+        erpCode: dto.erpCode,
+      })
+      .graphLookup({
+        from: 'Category',
+        startWith: '$erpCode',
+        connectFromField: 'erpCode',
+        connectToField: 'parentCode',
+        as: 'children',
+      })
+      .exec();
+
+    const category = dbEntry[0] as CategoryModel & {
+      children: CategoryModel[];
+    };
+    const categories: CategoryModel[] = [];
+
+    categories.push(category);
+    category.children.forEach((item) => {
+      categories.push(item);
+    });
+
+    for (const item of categories) {
+      this.setMarketplaceBlockedValue(item, dto.marketplaceId, dto.blocked);
+      await this.categoryModel.findByIdAndUpdate(item._id, item).exec();
+    }
+  }
+
+  private setMarketplaceBlockedValue(
+    category: CategoryModel,
+    marketplaceId: string,
+    value: boolean,
+  ) {
+    let founded = false;
+    if (category.marketplaceSettings) {
+      category.marketplaceSettings.forEach((item) => {
+        if (item.marketplaceId.toHexString() === marketplaceId) {
+          founded = true;
+          item.blocked = value;
+        }
+      });
+    } else {
+      category.marketplaceSettings = [];
+    }
+    if (founded) {
+      return;
+    }
+    category.marketplaceSettings.push({
+      marketplaceId: new Types.ObjectId(marketplaceId),
+      blocked: value,
     });
   }
 

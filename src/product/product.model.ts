@@ -8,7 +8,7 @@ export enum Vat {
   VAT_10 = 'VAT_10',
   VAT_10_110 = 'VAT_10_110',
   VAT_0 = 'VAT_0',
-  NO_VAT = 'NO_VAT'
+  NO_VAT = 'NO_VAT',
 }
 
 export enum ProductType {
@@ -54,7 +54,6 @@ export interface ProductModel extends Base {
 }
 
 export class ProductModel extends TimeStamps {
-
   @prop({ text: true })
   name: string;
 
@@ -115,6 +114,9 @@ export class ProductModel extends TimeStamps {
   @prop({ text: true })
   description?: string;
 
+  @prop()
+  yandexMarketSku?: number;
+
   @prop({ type: () => [ProductCharacteristic], _id: false })
   characteristics?: ProductCharacteristic[];
 
@@ -123,5 +125,4 @@ export class ProductModel extends TimeStamps {
 
   @prop({ type: () => [SpecialPrice], _id: false })
   specialPrices?: SpecialPrice[];
-
 }

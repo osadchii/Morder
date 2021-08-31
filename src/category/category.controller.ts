@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   NotFoundException,
   Param,
   Post,
@@ -15,6 +16,7 @@ import { IdValidationPipe } from '../infrastructure/pipes/id-validation-pipe';
 import { CATEGORY_NOT_FOUND_ERROR } from './category.constants';
 import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
 import { GetByParentCategoryDto } from './dto/getbyparent.category.dto';
+import { SetMarketplaceBlockingCategoryDto } from './dto/setmarketplacesettings.category.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('category')
@@ -45,6 +47,17 @@ export class CategoryController {
   @HttpCode(200)
   async getByParentCode(@Body() dto: GetByParentCategoryDto) {
     return this.categoryService.getByParentCode(dto);
+  }
+
+  @Post('setMarketplaceSettings/')
+  @HttpCode(200)
+  async setMarketplaceSettings(@Body() dto: SetMarketplaceBlockingCategoryDto) {
+    try {
+      await this.categoryService.setMarketplaceSettings(dto);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.toString(), 500);
+    }
   }
 
   @Get('getByErpCode/:erpCode')

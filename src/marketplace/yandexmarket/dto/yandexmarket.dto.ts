@@ -1,8 +1,17 @@
-import { ArrayUnique, IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  ArrayUnique,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { ProductType } from '../../../product/product.model';
 
 export class YandexMarketDto {
-
   @IsString()
   name: string;
 
@@ -18,6 +27,18 @@ export class YandexMarketDto {
 
   @IsNumber()
   feedGenerationInterval: number;
+
+  @IsString()
+  @IsNotEmpty()
+  campaignId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  authToken: string;
+
+  @IsString()
+  @IsNotEmpty()
+  clientId: string;
 
   @IsNumber()
   @Min(0)
@@ -47,5 +68,4 @@ export class YandexMarketDto {
   @ArrayUnique()
   @IsEnum(ProductType, { each: true })
   productTypes: ProductType[];
-
 }

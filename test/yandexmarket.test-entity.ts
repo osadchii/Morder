@@ -1,6 +1,9 @@
 import { YandexMarketDto } from '../src/marketplace/yandexmarket/dto/yandexmarket.dto';
 
 export const yandexMarketDto: YandexMarketDto = {
+  authToken: 'token',
+  campaignId: 'campaign',
+  clientId: 'client',
   productTypes: [],
   name: 'Test yandex market',
   active: true,
@@ -10,5 +13,5 @@ export const yandexMarketDto: YandexMarketDto = {
   defaultHeight: 10,
   defaultLength: 10,
   defaultWidth: 10,
-  defaultWeight: 1
+  defaultWeight: 1,
 };
