@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
 import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -29,20 +30,26 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     super(companyModel, categoryModel, productModel, configService);
   }
 
-  @Interval(24 * 60 * 60 * 10000)
+  @Interval(60000)
   async updateYandexMarketSkus() {
-    const settings = await this.activeSettings();
+    const settings = await this.settingsToUpdateMarketSkus();
 
-    this.logger.log(`Got ${settings.length} yandex.market active settings`);
+    this.logger.log(
+      `Got ${settings.length} yandex.market settings to update market skus`,
+    );
 
     for (const item of settings) {
       this.logger.log(`Start ${item.name} yandex.market getting skus`);
+
       const service = new YandexMarketIntegration(item, this.httpService);
       const map = await service.getYandexMarketSkus();
+
       this.logger.log(`Got ${map.size} yandex.market total skus`);
       for (const item of map) {
         await this.setYandexMarketSku(item[0], item[1]);
       }
+
+      await this.setLastUpdateMarketSkus(item._id);
     }
   }
 
@@ -60,7 +67,39 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     );
   }
 
-  private async activeSettings() {
-    return this.marketplaceModel.find({ active: true }).exec();
+  private async setLastUpdateMarketSkus(feedId: Types.ObjectId) {
+    return this.marketplaceModel
+      .findByIdAndUpdate(
+        feedId,
+        {
+          lastUpdateMarketSkus: new Date(),
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
+  }
+
+  private async settingsToUpdateMarketSkus() {
+    const settings = await this.marketplaceModel.find({
+      active: true,
+      updateMarketSkus: true,
+    });
+
+    const currentDate = new Date();
+
+    return settings.filter((item) => {
+      if (item.lastUpdateMarketSkus) {
+        const differenceTime =
+          currentDate.getTime() - item.lastUpdateMarketSkus.getTime();
+        const maximalDifferenceTime = item.updateMarketSkusInterval * 1000 * 60;
+        if (differenceTime > maximalDifferenceTime) {
+          return item;
+        }
+      } else {
+        return item;
+      }
+    });
   }
 }

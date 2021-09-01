@@ -28,6 +28,15 @@ export class YandexMarketModel extends TimeStamps implements MarketplaceModel {
   specialPriceName?: string;
 
   @prop()
+  updateMarketSkus: boolean;
+
+  @prop()
+  updateMarketSkusInterval: number;
+
+  @prop()
+  lastUpdateMarketSkus?: Date;
+
+  @prop()
   feedGenerationInterval: number;
 
   @prop()

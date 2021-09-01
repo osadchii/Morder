@@ -1,6 +1,8 @@
 import { YandexMarketDto } from '../src/marketplace/yandexmarket/dto/yandexmarket.dto';
 
 export const yandexMarketDto: YandexMarketDto = {
+  updateMarketSkus: false,
+  updateMarketSkusInterval: 0,
   authToken: 'token',
   campaignId: 'campaign',
   clientId: 'client',

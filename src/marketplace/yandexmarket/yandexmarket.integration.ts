@@ -55,7 +55,6 @@ export class YandexMarketIntegration {
       }
     }
 
-    this.logger.log(`Got ${map.size} yandex.market skus`);
     return map;
   }
 
@@ -93,14 +92,13 @@ export class YandexMarketIntegration {
           }
           result.items.set(item.offer.shopSku, item.mapping.marketSku);
         });
-
-        this.logger.log(
-          `Got ${result.items.size} yandex.market skus from ${url}`,
-        );
-        this.logger.log(`Next page ${result.nextPageToken}`);
       })
       .catch((error) => {
-        this.logger.error(`Can't get yandex.market skus.\nError ${error}`);
+        const data = error.response.data;
+        const { title, status } = data;
+        this.logger.error(
+          `Can't get yandex.market skus.\nResponse status: ${status}\nResponse title: ${title}`,
+        );
       });
 
     return result;

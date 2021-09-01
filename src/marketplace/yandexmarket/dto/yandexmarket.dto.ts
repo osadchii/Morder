@@ -40,6 +40,12 @@ export class YandexMarketDto {
   @IsNotEmpty()
   clientId: string;
 
+  @IsBoolean()
+  updateMarketSkus: boolean;
+
+  @IsNumber()
+  updateMarketSkusInterval: number;
+
   @IsNumber()
   @Min(0)
   minimalPrice: number;
