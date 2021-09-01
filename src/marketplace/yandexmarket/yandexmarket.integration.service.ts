@@ -87,6 +87,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     return this.productModel.findOneAndUpdate(
       {
         articul: articul,
+        $or: [{ yandexMarketSku: { $ne: sku } }, { yandexMarketSku: null }],
       },
       {
         yandexMarketSku: sku,
@@ -172,6 +173,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     lastPriceUpdate,
   }: YandexMarketModel): Promise<UpdatedPrice[]> {
     const fromDate = lastPriceUpdate ?? new Date(1, 1, 1);
+    this.logger.log(fromDate);
     return this.productModel
       .aggregate()
       .match({
