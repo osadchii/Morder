@@ -171,9 +171,12 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     settings: YandexMarketModel,
   ): Promise<UpdatedPrice[]> {
     const { specialPriceName } = settings;
-    const fromDate = settings.lastPriceUpdate
-      ? settings.lastPriceUpdate
-      : new Date(2000, 1, 1);
+    let fromDate = new Date(2020, 1, 1);
+
+    if (settings.lastPriceUpdate) {
+      fromDate = settings.lastPriceUpdate;
+    }
+
     this.logger.log(settings.lastPriceUpdate);
     this.logger.log(fromDate);
     return this.productModel
