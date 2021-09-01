@@ -94,11 +94,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         const differenceTime =
           currentDate.getTime() - item.lastUpdateMarketSkus.getTime();
         const maximalDifferenceTime = item.updateMarketSkusInterval * 1000 * 60;
-        if (differenceTime > maximalDifferenceTime) {
-          return item;
-        }
+        return differenceTime > maximalDifferenceTime;
       } else {
-        return item;
+        return true;
       }
     });
   }
