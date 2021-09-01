@@ -167,12 +167,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
-  private async updatedYandexMarketPrices({
-    _id,
-    specialPriceName,
-    lastPriceUpdate,
-  }: YandexMarketModel): Promise<UpdatedPrice[]> {
-    const fromDate = lastPriceUpdate ?? new Date(1, 1, 1);
+  private async updatedYandexMarketPrices(
+    settings: YandexMarketModel,
+  ): Promise<UpdatedPrice[]> {
+    const { specialPriceName } = settings;
+    const fromDate = settings.lastPriceUpdate
+      ? settings.lastPriceUpdate
+      : new Date(1, 1, 1);
     this.logger.log(fromDate);
     return this.productModel
       .aggregate()
