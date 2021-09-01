@@ -46,6 +46,9 @@ export class YandexMarketDto {
   @IsNumber()
   updateMarketSkusInterval: number;
 
+  @IsBoolean()
+  updatePricesByApi: boolean;
+
   @IsNumber()
   @Min(0)
   minimalPrice: number;

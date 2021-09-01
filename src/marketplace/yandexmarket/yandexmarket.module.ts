@@ -10,6 +10,7 @@ import { YandexMarketFeedService } from './yandexmarket.feed.service';
 import { HttpModule } from '@nestjs/axios';
 import { getHttpConfig } from '../../infrastructure/configs/http.config';
 import { YandexMarketIntegrationService } from './yandexmarket.integration.service';
+import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 
 @Module({
   controllers: [YandexMarketController],
@@ -19,6 +20,14 @@ import { YandexMarketIntegrationService } from './yandexmarket.integration.servi
         typegooseClass: YandexMarketModel,
         schemaOptions: {
           collection: 'YandexMarket',
+        },
+      },
+    ]),
+    TypegooseModule.forFeature([
+      {
+        typegooseClass: YandexMarketSendPriceQueueModel,
+        schemaOptions: {
+          collection: 'YandexMarketSendPriceQueue',
         },
       },
     ]),

@@ -1,32 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
 import { Logger } from '@nestjs/common';
-
-interface YandexMarketSkuPageModel {
-  nextPageToken?: string;
-  items: Map<string, number>;
-}
-
-interface YandexMarketSkuPageResponse {
-  status: string;
-  result?: {
-    offerMappingEntries: {
-      offer: {
-        shopSku: string;
-      };
-      mapping?: {
-        marketSku: number;
-      };
-    }[];
-    paging?: {
-      nextPageToken?: string;
-    };
-  };
-  errors?: {
-    code: string;
-    message: string;
-  }[];
-}
+import { YandexMarketSkuPageModel } from './integration-model/yandexmarket-sku-page.model';
 
 export class YandexMarketIntegration {
   private readonly logger = new Logger(YandexMarketIntegration.name);

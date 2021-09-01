@@ -10,14 +10,23 @@ import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
 import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
-import { Types } from 'mongoose';
+import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
+
+interface UpdatedPrice {
+  yandexMarketSku: number;
+  calculatedPrice: number;
+  updatedAt: Date;
+}
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
   private readonly logger = new Logger(YandexMarketIntegrationService.name);
+
   constructor(
     @InjectModel(YandexMarketModel)
     private readonly marketplaceModel: ModelType<YandexMarketModel>,
+    @InjectModel(YandexMarketSendPriceQueueModel)
+    private readonly sendPriceQueue: ModelType<YandexMarketSendPriceQueueModel>,
     @InjectModel(CompanyModel)
     protected readonly companyModel: ModelType<CompanyModel>,
     @InjectModel(CategoryModel)
@@ -49,7 +58,28 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         await this.setYandexMarketSku(item[0], item[1]);
       }
 
-      await this.setLastUpdateMarketSkus(item._id);
+      await this.setLastUpdateMarketSkus(item);
+    }
+  }
+
+  @Interval(60000)
+  async updateYandexPricesQueue() {
+    const settings = await this.settingsToUpdatePrices();
+
+    this.logger.log(
+      `Got ${settings.length} yandex.market settings to update prices`,
+    );
+
+    for (const setting of settings) {
+      const now = new Date();
+      const prices = await this.updatedYandexMarketPrices(setting, now);
+
+      this.logger.log(
+        `Got ${prices.length} prices to update in ${setting.name}`,
+      );
+
+      await this.saveUpdatedPricesToQueue(setting, prices);
+      await this.setLastUpdatePrices(setting, now);
     }
   }
 
@@ -67,12 +97,26 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     );
   }
 
-  private async setLastUpdateMarketSkus(feedId: Types.ObjectId) {
+  private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
     return this.marketplaceModel
       .findByIdAndUpdate(
-        feedId,
+        _id,
         {
           lastUpdateMarketSkus: new Date(),
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
+  }
+
+  private async setLastUpdatePrices({ _id }: YandexMarketModel, date: Date) {
+    return this.marketplaceModel
+      .findByIdAndUpdate(
+        _id,
+        {
+          lastPriceUpdate: date,
         },
         {
           useFindAndModify: false,
@@ -107,5 +151,57 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     });
 
     return result;
+  }
+
+  private async settingsToUpdatePrices() {
+    return this.marketplaceModel
+      .find({
+        active: true,
+        updatePricesByApi: true,
+        lastPriceUpdate: { $lt: new Date() },
+      })
+      .exec();
+  }
+
+  private async updatedYandexMarketPrices(
+    { _id, specialPriceName }: YandexMarketModel,
+    updateFrom: Date,
+  ): Promise<UpdatedPrice[]> {
+    return this.productModel
+      .aggregate()
+      .match({
+        yandexMarketSku: { $exists: true },
+        isDeleted: false,
+        updatedAt: { $gte: updateFrom },
+      })
+      .sort({ updatedAt: 1 })
+      .addFields({
+        calculatedPrice: {
+          $function: {
+            body: MarketplaceService.CalculatedPriceFunctionText(),
+            args: ['$specialPrices', specialPriceName, '$price'],
+            lang: 'js',
+          },
+        },
+      })
+      .project({
+        yandexMarketSku: 1,
+        calculatedPrice: 1,
+        updatedAt: 1,
+      })
+      .exec();
+  }
+
+  private async saveUpdatedPricesToQueue(
+    { _id }: YandexMarketModel,
+    updatedPrices: UpdatedPrice[],
+  ) {
+    for (const updatedPrice of updatedPrices) {
+      await this.sendPriceQueue.create({
+        marketplaceId: _id,
+        marketSku: updatedPrice.yandexMarketSku,
+        price: updatedPrice.calculatedPrice,
+      });
+    }
   }
 }
