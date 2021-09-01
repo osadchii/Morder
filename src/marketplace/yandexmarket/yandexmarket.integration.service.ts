@@ -72,7 +72,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     for (const setting of settings) {
       const now = new Date();
-      const prices = await this.updatedYandexMarketPrices(setting, now);
+      const prices = await this.updatedYandexMarketPrices(setting);
 
       this.logger.log(
         `Got ${prices.length} prices to update in ${setting.name}`,
@@ -166,16 +166,18 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
-  private async updatedYandexMarketPrices(
-    { _id, specialPriceName }: YandexMarketModel,
-    updateFrom: Date,
-  ): Promise<UpdatedPrice[]> {
+  private async updatedYandexMarketPrices({
+    _id,
+    specialPriceName,
+    lastPriceUpdate,
+  }: YandexMarketModel): Promise<UpdatedPrice[]> {
+    const fromDate = lastPriceUpdate ?? new Date(1, 1, 1);
     return this.productModel
       .aggregate()
       .match({
         yandexMarketSku: { $exists: true },
         isDeleted: false,
-        updatedAt: { $gte: updateFrom },
+        updatedAt: { $gte: fromDate },
       })
       .sort({ updatedAt: 1 })
       .addFields({
