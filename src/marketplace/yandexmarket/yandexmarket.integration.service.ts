@@ -158,7 +158,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .find({
         active: true,
         updatePricesByApi: true,
-        lastPriceUpdate: { $lt: new Date() },
+        $or: [
+          { lastPriceUpdate: { $lt: new Date() } },
+          { lastPriceUpdate: null },
+        ],
       })
       .exec();
   }
