@@ -82,22 +82,30 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   }
 
   private async settingsToUpdateMarketSkus() {
-    const settings = await this.marketplaceModel.find({
-      active: true,
-      updateMarketSkus: true,
-    });
+    const settings = await this.marketplaceModel
+      .find({
+        active: true,
+        updateMarketSkus: true,
+      })
+      .exec();
+
+    const result: YandexMarketModel[] = [];
 
     const currentDate = new Date();
 
-    return settings.filter((item) => {
+    settings.forEach((item) => {
       if (item.lastUpdateMarketSkus) {
         const differenceTime =
           currentDate.getTime() - item.lastUpdateMarketSkus.getTime();
         const maximalDifferenceTime = item.updateMarketSkusInterval * 1000 * 60;
-        return differenceTime > maximalDifferenceTime;
+        if (differenceTime > maximalDifferenceTime) {
+          result.push(item);
+        }
       } else {
-        return true;
+        result.push(item);
       }
     });
+
+    return result;
   }
 }
