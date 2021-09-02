@@ -183,7 +183,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .match({
         yandexMarketSku: { $exists: true },
         isDeleted: false,
-        $or: [{ priceUpdatedAt: { $gte: fromDate } }, { priceUpdatedAt: null }],
+        priceUpdatedAt: { $gte: fromDate },
       })
       .sort({ priceUpdatedAt: 1 })
       .addFields({
