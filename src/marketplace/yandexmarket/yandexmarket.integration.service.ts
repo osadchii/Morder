@@ -177,7 +177,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       fromDate = settings.lastPriceUpdate;
     }
 
-    this.logger.log(settings.lastPriceUpdate);
     this.logger.log(fromDate);
     return this.productModel
       .aggregate()
