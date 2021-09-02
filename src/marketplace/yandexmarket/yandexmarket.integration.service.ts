@@ -103,8 +103,21 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         continue;
       }
 
+      this.logger.log(`Sending ${setting.name} prices`);
+
       const service = new YandexMarketIntegration(setting, this.httpService);
+
+      this.logger.log(`Deleting ${setting.name} prices from queue`);
       await service.updatePrices(prices);
+      await this.deletePricesFromSendQueue(prices);
+    }
+  }
+
+  private async deletePricesFromSendQueue(
+    prices: YandexMarketSendPriceQueueModel[],
+  ) {
+    for (const price of prices) {
+      await this.sendPriceQueue.findByIdAndDelete(price._id);
     }
   }
 
