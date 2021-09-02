@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
 import { Logger } from '@nestjs/common';
 import { YandexMarketSkuPageModel } from './integration-model/yandexmarket-sku-page.model';
+import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 
 export class YandexMarketIntegration {
   private readonly logger = new Logger(YandexMarketIntegration.name);
@@ -31,6 +32,36 @@ export class YandexMarketIntegration {
     }
 
     return map;
+  }
+
+  async updatePrices(prices: YandexMarketSendPriceQueueModel[]) {
+    const { campaignId } = this.settings;
+
+    const url = `${this.baseUrl}/${campaignId}/offer-prices/updates.json`;
+    const body = {
+      offers: prices.map((item) => {
+        return {
+          marketSku: item.marketSku,
+          price: {
+            currencyId: 'RUR',
+            value: item.price,
+          },
+        };
+      }),
+    };
+
+    await this.httpService
+      .post(url, body, {
+        headers: {
+          ...this.authorizationHeader(),
+        },
+      })
+      .toPromise()
+      .catch((error) => {
+        this.logger.error(
+          `Can't send yandex.market prices.\nError: ${error.toString()}`,
+        );
+      });
   }
 
   private async getYandexMarketSkuPage(

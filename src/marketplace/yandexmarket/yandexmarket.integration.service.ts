@@ -11,12 +11,7 @@ import { YandexMarketModel } from './yandexmarket.model';
 import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
-
-interface UpdatedPrice {
-  yandexMarketSku: number;
-  calculatedPrice: number;
-  updatedAt: Date;
-}
+import { UpdatedPrice } from './integration-model/yandexmarket-updated-price.model';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -85,6 +80,42 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       await this.saveUpdatedPricesToQueue(setting, prices);
       await this.setLastUpdatePrices(setting, now);
     }
+  }
+
+  @Interval(90000)
+  async sendPricesToYandexMarket() {
+    await this.sendPricesFromQueue();
+  }
+
+  private async sendPricesFromQueue() {
+    const settings = await this.marketplaceModel.find({
+      active: true,
+      updatePricesByApi: true,
+    });
+
+    for (const setting of settings) {
+      const prices = await this.queuedPricesBySettings(setting);
+      this.logger.log(
+        `Got ${prices.length} for ${setting.name} to send to yandex.market`,
+      );
+
+      if (prices.length === 0) {
+        continue;
+      }
+
+      const service = new YandexMarketIntegration(setting, this.httpService);
+      await service.updatePrices(prices);
+    }
+  }
+
+  private async queuedPricesBySettings({ _id }: YandexMarketModel) {
+    return this.sendPriceQueue
+      .find({
+        marketplaceId: _id,
+      })
+      .sort({ updatedAt: 1 })
+      .limit(50)
+      .exec();
   }
 
   private async setYandexMarketSku(articul: string, sku: number) {
