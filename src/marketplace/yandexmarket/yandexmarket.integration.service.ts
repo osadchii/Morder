@@ -58,6 +58,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         await this.setYandexMarketSku(item[0], item[1]);
       }
 
+      this.logger.log(`Save ${item.name} last update market skus`);
       await this.setLastUpdateMarketSkus(item);
     }
   }
