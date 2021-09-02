@@ -1,4 +1,9 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { ProductModel } from './product.model';
@@ -17,6 +22,8 @@ import { GetProductsDto } from './dto/get-products.dto';
 
 @Injectable()
 export class ProductService {
+  private readonly logger = new Logger(ProductService.name);
+
   constructor(
     @InjectModel(ProductModel)
     private readonly productModel: ModelType<ProductModel>,
@@ -174,6 +181,7 @@ export class ProductService {
   // Price actions
 
   async updateBasePrice({ erpCode, price }: SetPriceDto) {
+    this.logger.log(`Updated ${erpCode} base price to ${price}`);
     return this.productModel
       .findOneAndUpdate(
         {
@@ -197,6 +205,9 @@ export class ProductService {
   }
 
   async updateSpecialPrice({ erpCode, priceName, price }: SetSpecialPriceDto) {
+    this.logger.log(
+      `Updated ${erpCode} special price ${priceName} to ${price}`,
+    );
     const product = await this.productModel.findOne(
       { erpCode },
       {
