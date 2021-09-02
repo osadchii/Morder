@@ -85,18 +85,20 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   }
 
   private async setYandexMarketSku(articul: string, sku: number) {
-    return this.productModel.findOneAndUpdate(
-      {
-        articul: articul,
-        $or: [{ yandexMarketSku: { $ne: sku } }, { yandexMarketSku: null }],
-      },
-      {
-        yandexMarketSku: sku,
-      },
-      {
-        useFindAndModify: false,
-      },
-    );
+    return this.productModel
+      .findOneAndUpdate(
+        {
+          articul: articul,
+          $or: [{ yandexMarketSku: { $ne: sku } }, { yandexMarketSku: null }],
+        },
+        {
+          yandexMarketSku: sku,
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
