@@ -47,10 +47,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       `Got ${settings.length} yandex.market settings to update market skus`,
     );
 
-    for (const item of settings) {
-      this.logger.log(`Start ${item.name} yandex.market getting skus`);
+    for (const setting of settings) {
+      this.logger.log(`Start ${setting.name} yandex.market getting skus`);
 
-      const service = new YandexMarketIntegration(item, this.httpService);
+      const service = new YandexMarketIntegration(setting, this.httpService);
       const map = await service.getYandexMarketSkus();
 
       this.logger.log(`Got ${map.size} yandex.market total skus`);
@@ -58,8 +58,8 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         await this.setYandexMarketSku(item[0], item[1]);
       }
 
-      this.logger.log(`Save ${item.name} last update market skus`);
-      await this.setLastUpdateMarketSkus(item);
+      this.logger.log(`Save ${setting.name} last update market skus`);
+      await this.setLastUpdateMarketSkus(setting);
     }
   }
 
