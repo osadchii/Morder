@@ -58,6 +58,7 @@ export class YandexMarketIntegration {
       })
       .toPromise()
       .catch((error) => {
+        console.dir(error);
         this.logger.error(
           `Can't send yandex.market prices.\nError: ${error.toString()}`,
         );
