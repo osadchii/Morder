@@ -57,8 +57,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       const map = await service.getYandexMarketSkus();
 
       this.logger.log(`Saving ${map.size} yandex.market skus`);
+      let saved = 0;
       for (const [articul, sku] of map) {
         await this.setYandexMarketSku(articul, sku);
+        this.logger.log(`Saved ${++saved} yandex.market skus`);
       }
       this.logger.log(`Saved all yandex.market skus`);
     }
