@@ -117,6 +117,9 @@ export class ProductModel extends TimeStamps {
   @prop()
   yandexMarketSku?: number;
 
+  @prop()
+  priceUpdatedAt?: Date;
+
   @prop({ type: () => [ProductCharacteristic], _id: false })
   characteristics?: ProductCharacteristic[];
 

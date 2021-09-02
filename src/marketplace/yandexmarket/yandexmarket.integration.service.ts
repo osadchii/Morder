@@ -183,9 +183,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .match({
         yandexMarketSku: { $exists: true },
         isDeleted: false,
-        updatedAt: { $gte: fromDate },
+        $or: [{ priceUpdatedAt: { $gte: fromDate } }, { priceUpdatedAt: null }],
       })
-      .sort({ updatedAt: 1 })
+      .sort({ priceUpdatedAt: 1 })
       .addFields({
         calculatedPrice: {
           $function: {
@@ -198,7 +198,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .project({
         yandexMarketSku: 1,
         calculatedPrice: 1,
-        updatedAt: 1,
+        priceUpdatedAt: 1,
       })
       .exec();
   }

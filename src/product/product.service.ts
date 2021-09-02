@@ -189,6 +189,7 @@ export class ProductService {
         },
         {
           price,
+          priceUpdatedAt: new Date(),
         },
         {
           new: true,
@@ -205,9 +206,6 @@ export class ProductService {
   }
 
   async updateSpecialPrice({ erpCode, priceName, price }: SetSpecialPriceDto) {
-    this.logger.log(
-      `Updated ${erpCode} special price ${priceName} to ${price}`,
-    );
     const product = await this.productModel.findOne(
       { erpCode },
       {
@@ -244,6 +242,7 @@ export class ProductService {
         },
         {
           specialPrices: product.specialPrices,
+          priceUpdatedAt: new Date(),
         },
         {
           new: true,
