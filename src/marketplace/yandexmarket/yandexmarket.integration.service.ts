@@ -63,7 +63,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }
   }
 
-  @Interval(10000)
+  @Interval(60000)
   async updateYandexPricesQueue() {
     const settings = await this.settingsToUpdatePrices();
 
