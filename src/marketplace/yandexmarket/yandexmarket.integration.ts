@@ -69,10 +69,9 @@ export class YandexMarketIntegration {
         });
       })
       .catch((error) => {
-        const data = error.response.data;
-        const { title, status } = data;
+        console.dir(error);
         this.logger.error(
-          `Can't get yandex.market skus.\nResponse status: ${status}\nResponse title: ${title}`,
+          `Can't get yandex.market skus.\nError: ${error.toString()}`,
         );
       });
 
