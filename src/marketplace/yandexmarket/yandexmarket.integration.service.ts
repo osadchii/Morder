@@ -135,6 +135,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     const start = new Date().getTime();
     const productsToUpdate = (await this.productModel
       .aggregate()
+      .match({
+        articul: { $in: [...skus.keys()] },
+      })
       .addFields({
         needToUpdate: {
           $function: {
