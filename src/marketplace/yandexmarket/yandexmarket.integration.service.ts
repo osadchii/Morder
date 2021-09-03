@@ -12,6 +12,7 @@ import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 import { UpdatedPrice } from './integration-model/yandexmarket-updated-price.model';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -52,12 +53,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       const map = await service.getYandexMarketSkus();
 
       this.logger.log(`Saving ${map.size} yandex.market skus`);
-      let saved = 0;
-      for (const [articul, sku] of map) {
-        await this.setYandexMarketSku(articul, sku);
-        this.logger.log(`Saved ${++saved} yandex.market skus`);
-      }
-      this.logger.log(`Saved all yandex.market skus`);
+      await this.setYandexMarketSkus(map);
+      // let saved = 0;
+      // for (const [articul, sku] of map) {
+      //   await this.setYandexMarketSku(articul, sku);
+      //   this.logger.log(`Saved ${++saved} yandex.market skus`);
+      // }
+      this.logger.log(`Updated all yandex.market skus`);
     }
   }
 
@@ -86,6 +88,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   async sendPricesToYandexMarket() {
     await this.sendPricesFromQueue();
   }
+
+  @Interval(120000)
+  async updateHiddenProducts() {}
 
   private async sendPricesFromQueue() {
     const settings = await this.marketplaceModel.find({
@@ -129,6 +134,54 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .sort({ updatedAt: 1 })
       .limit(50)
       .exec();
+  }
+
+  private async setYandexMarketSkus(skus: Map<string, number>) {
+    const productsToUpdate = (await this.productModel
+      .aggregate()
+      .addFields({
+        needToUpdate: {
+          $function: {
+            body: `function(articul, yandexMarketSku, skus) {
+                    let needToUpdate = false;
+                    const marketSku = skus.get(articul);
+                    if (marketSku && yandexMarketSku !== marketSku) {
+                      needToUpdate = true;
+                    }
+                    return needToUpdate;
+                  }`,
+            args: ['$articul', '$yandexMarketSku', skus],
+            lang: 'js',
+          },
+        },
+      })
+      .match({
+        needToUpdate: true,
+      })
+      .project({
+        _id: 1,
+        articul: 1,
+      })
+      .exec()) as { _id: Types.ObjectId; articul: string }[];
+
+    this.logger.log(
+      `Need to update ${productsToUpdate.length} yandex.market skus in products`,
+    );
+    let updated = 0;
+
+    for (const { _id, articul } of productsToUpdate) {
+      const sku = skus.get(articul);
+      await this.productModel.findByIdAndUpdate(
+        _id,
+        {
+          yandexMarketSku: sku,
+        },
+        {
+          useFindAndModify: false,
+        },
+      );
+      this.logger.log(`Updated ${++updated} yandex.market skus`);
+    }
   }
 
   private async setYandexMarketSku(articul: string, sku: number) {

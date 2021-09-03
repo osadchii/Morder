@@ -1,20 +1,16 @@
-interface YandexMarketSkuPageResponse {
-  status: string;
-  result?: {
-    offerMappingEntries: {
-      offer: {
-        shopSku: string;
-      };
-      mapping?: {
-        marketSku: number;
-      };
-    }[];
-    paging?: {
-      nextPageToken?: string;
+interface Result {
+  offerMappingEntries: {
+    offer: {
+      shopSku: string;
     };
-  };
-  errors?: {
-    code: string;
-    message: string;
+    mapping?: {
+      marketSku: number;
+    };
   }[];
+  paging?: {
+    nextPageToken?: string;
+  };
 }
+
+export interface YandexMarketSkuPageResponse
+  extends YandexMarketPagingResponse<Result> {}
