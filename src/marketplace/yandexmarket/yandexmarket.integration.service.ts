@@ -54,11 +54,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
       this.logger.log(`Saving ${map.size} yandex.market skus`);
       await this.setYandexMarketSkus(map);
-      // let saved = 0;
-      // for (const [articul, sku] of map) {
-      //   await this.setYandexMarketSku(articul, sku);
-      //   this.logger.log(`Saved ${++saved} yandex.market skus`);
-      // }
       this.logger.log(`Updated all yandex.market skus`);
     }
   }
@@ -137,6 +132,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   }
 
   private async setYandexMarketSkus(skus: Map<string, number>) {
+    const start = new Date().getTime();
     const productsToUpdate = (await this.productModel
       .aggregate()
       .addFields({
@@ -163,6 +159,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         articul: 1,
       })
       .exec()) as { _id: Types.ObjectId; articul: string }[];
+    const end = new Date().getTime();
+
+    this.logger.warn(
+      `Getting products to update Yandex.Market sku elapsed: ${end - start} ms`,
+    );
 
     this.logger.log(
       `Need to update ${productsToUpdate.length} yandex.market skus in products`,
@@ -182,23 +183,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       );
       this.logger.log(`Updated ${++updated} yandex.market skus`);
     }
-  }
-
-  private async setYandexMarketSku(articul: string, sku: number) {
-    return this.productModel
-      .findOneAndUpdate(
-        {
-          articul: articul,
-          $or: [{ yandexMarketSku: { $ne: sku } }, { yandexMarketSku: null }],
-        },
-        {
-          yandexMarketSku: sku,
-        },
-        {
-          useFindAndModify: false,
-        },
-      )
-      .exec();
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
