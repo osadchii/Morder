@@ -144,7 +144,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
           $function: {
             body: `function(articul, yandexMarketSku, skus) {
                     let needToUpdate = false;
-                    const marketSku = skus.get(articul);
+                    const marketSku = skus[articul];
                     if (marketSku && yandexMarketSku !== marketSku) {
                       needToUpdate = true;
                     }
