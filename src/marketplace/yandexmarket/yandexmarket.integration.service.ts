@@ -266,12 +266,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }
 
     let updated = false;
-    product.marketplaceSettings.forEach((item) => {
-      if (item.marketplaceId == marketplaceId) {
-        item.identifier = sku.toString();
+
+    for (const settings of product.marketplaceSettings) {
+      if (settings.marketplaceId == marketplaceId) {
+        settings.identifier = sku.toString();
         updated = true;
       }
-    });
+    }
 
     if (!updated) {
       product.marketplaceSettings.push({
