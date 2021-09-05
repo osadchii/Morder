@@ -85,7 +85,9 @@ export class YandexMarketIntegration {
         const { response } = error;
         const { status, statusText } = response;
         this.logger.error(
-          `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}`,
+          `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nUrl: ${url}\nBody: ${JSON.stringify(
+            body,
+          )}`,
         );
       });
   }
