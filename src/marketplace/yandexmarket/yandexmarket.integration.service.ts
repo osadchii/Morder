@@ -318,6 +318,8 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       yandexMarketSku: { $exists: true },
     });
 
+    this.logger.log(`Got ${products.length} with yandex market sku`);
+
     const categoryInfo = new Map<string, boolean>();
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
