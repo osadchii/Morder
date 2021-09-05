@@ -3,7 +3,6 @@ import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CategoryModel } from '../../category/category.model';
 import { ProductModel } from '../../product/product.model';
-import { Interval } from '@nestjs/schedule';
 import { Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { path } from 'app-root-path';
@@ -14,31 +13,31 @@ import { CompanyModel } from '../../company/company.model';
 
 @Injectable()
 export class YandexMarketFeedService extends MarketplaceService {
-
   private readonly logger = new Logger(YandexMarketFeedService.name);
 
   constructor(
-    @InjectModel(YandexMarketModel) private readonly yandexMarketModel: ModelType<YandexMarketModel>,
-    @InjectModel(CompanyModel) protected readonly companyModel: ModelType<CompanyModel>,
-    @InjectModel(CategoryModel) protected readonly categoryModel: ModelType<CategoryModel>,
-    @InjectModel(ProductModel) protected readonly productModel: ModelType<ProductModel>,
-    protected readonly configService: ConfigService) {
+    @InjectModel(YandexMarketModel)
+    private readonly yandexMarketModel: ModelType<YandexMarketModel>,
+    @InjectModel(CompanyModel)
+    protected readonly companyModel: ModelType<CompanyModel>,
+    @InjectModel(CategoryModel)
+    protected readonly categoryModel: ModelType<CategoryModel>,
+    @InjectModel(ProductModel)
+    protected readonly productModel: ModelType<ProductModel>,
+    protected readonly configService: ConfigService,
+  ) {
     super(companyModel, categoryModel, productModel, configService);
   }
 
-  @Interval(10000)
-  async generateSberMegaMarketFeeds() {
-
+  async generateYandexMarketFeeds() {
     const settings = await this.settingsToGenerate();
 
     for (const item of settings) {
       await this.generateFeed(item);
     }
-
   }
 
   private async generateFeed(marketModel: YandexMarketModel) {
-
     const { _id, name } = marketModel;
 
     this.logger.log(`Start of ${name} feed generation.`);
@@ -63,29 +62,36 @@ export class YandexMarketFeedService extends MarketplaceService {
     await this.setLastFeedGeneration(_id);
 
     this.logger.log(`End of ${name} feed generation.`);
-
   }
 
   private async setLastFeedGeneration(feedId: Types.ObjectId) {
-    return this.yandexMarketModel.findByIdAndUpdate(feedId, {
-      lastFeedGeneration: new Date(),
-    }, {
-      useFindAndModify: false,
-    }).exec();
+    return this.yandexMarketModel
+      .findByIdAndUpdate(
+        feedId,
+        {
+          lastFeedGeneration: new Date(),
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
   }
 
   private async settingsToGenerate(): Promise<YandexMarketModel[]> {
-
     const result: YandexMarketModel[] = [];
-    const settings = await this.yandexMarketModel.find({
-      active: true,
-    }).exec();
+    const settings = await this.yandexMarketModel
+      .find({
+        active: true,
+      })
+      .exec();
 
     const currentDate = new Date();
 
     settings.forEach((item) => {
       if (item.lastFeedGeneration) {
-        const differenceTime = currentDate.getTime() - item.lastFeedGeneration.getTime();
+        const differenceTime =
+          currentDate.getTime() - item.lastFeedGeneration.getTime();
         const maximalDifferenceTime = item.feedGenerationInterval * 1000 * 60;
         if (differenceTime > maximalDifferenceTime) {
           result.push(item);
@@ -96,7 +102,5 @@ export class YandexMarketFeedService extends MarketplaceService {
     });
 
     return result;
-
   }
-
 }
