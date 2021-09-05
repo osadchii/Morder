@@ -200,13 +200,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
                 
                 if (settings) {
                   settings.forEach((item) => {
-                    if (item.marketplaceId == settingsId){
+                    if (item.marketplaceId == settingsId) {
                       currentSku = item.identifier;
                     }
                   })
                 }
                 
-                if (currentSku != marketSku) {
+                if (marketSku != currentSku) {
                   needToUpdate = true;
                 }
                 return needToUpdate;
@@ -263,7 +263,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     let updated = false;
     product.marketplaceSettings.forEach((item) => {
-      if (item.marketplaceId === marketplaceId) {
+      if (item.marketplaceId == marketplaceId) {
         item.identifier = sku.toString();
         updated = true;
       }
