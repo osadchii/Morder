@@ -242,7 +242,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   private async setYandexMarketSku(
     productId: Types.ObjectId,
     marketplaceId: Types.ObjectId,
-    identifier: number,
+    sku: number,
   ) {
     const product = await this.productModel.findById(productId).exec();
 
@@ -254,7 +254,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     product.marketplaceSettings.forEach((item) => {
       if (item.marketplaceId === marketplaceId) {
-        item.identifier = identifier.toString();
+        item.identifier = sku.toString();
         updated = true;
       }
     });
@@ -264,7 +264,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         marketplaceId: marketplaceId,
         ignoreRestrictions: false,
         nullifyStock: false,
-        identifier: identifier.toString(),
+        identifier: sku.toString(),
       });
     }
 
