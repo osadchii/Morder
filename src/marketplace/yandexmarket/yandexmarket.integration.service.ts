@@ -195,8 +195,8 @@ export class YandexMarketIntegrationService extends MarketplaceService {
           $function: {
             body: `function (articul, settings, skus, settingsId) {
                 let needToUpdate = false;
-                const marketSku = skus[articul];
-                let currentSku = undefined;
+                const marketSku = skus[articul].toString();
+                let currentSku = '';
                 
                 if (settings) {
                   settings.forEach((item) => {
@@ -265,7 +265,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     product.marketplaceSettings.forEach((item) => {
       if (item.marketplaceId == marketplaceId) {
         item.identifier = sku.toString();
-        this.logger.log(`Updated without new row ${sku}`);
         updated = true;
       }
     });
