@@ -234,7 +234,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     for (const product of productsToUpdate) {
       const sku = skus.get(product.articul);
-      await this.setYandexMarketSku(_id, _id, sku);
+      await this.setYandexMarketSku(product._id, _id, sku);
       this.logger.log(`Updated ${++updated} yandex.market skus`);
     }
   }
