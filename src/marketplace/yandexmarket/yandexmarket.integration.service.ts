@@ -92,6 +92,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       this.logger.log(`Start updating hidden products for ${setting.name}`);
 
       const products = await this.actualProductsHiddenFlag(setting);
+      this.logger.log(
+        `Got ${products.size} products to update hidden products for ${setting.name}`,
+      );
       const service = new YandexMarketIntegration(setting, this.httpService);
 
       const hiddenProducts = await service.getYandexMarketHiddenProducts();
@@ -136,7 +139,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     for (const setting of settings) {
       const prices = await this.queuedPricesBySettings(setting);
       this.logger.log(
-        `Got ${prices.length} for ${setting.name} to send to yandex.market`,
+        `Got ${prices.length} prices for ${setting.name} to send to yandex.market`,
       );
 
       if (prices.length === 0) {
