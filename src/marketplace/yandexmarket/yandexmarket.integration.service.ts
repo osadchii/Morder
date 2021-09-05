@@ -333,6 +333,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
     products.forEach((product) => {
+      if (!product.yandexMarketSku) {
+        return;
+      }
       let available = true;
       const productInfo = {
         articul: product.articul,
