@@ -149,9 +149,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       this.logger.log(`Sending ${setting.name} prices`);
 
       const service = new YandexMarketIntegration(setting, this.httpService);
+      await service.updatePrices(prices);
 
       this.logger.log(`Deleting ${setting.name} prices from queue`);
-      await service.updatePrices(prices);
       await this.deletePricesFromSendQueue(prices);
     }
   }

@@ -70,6 +70,9 @@ export class YandexMarketIntegration {
         };
       }),
     };
+    console.log(
+      `Starting sending hide products request.\nUrl: ${url}\nHidden offers in body: ${body.hiddenOffers.length}`,
+    );
 
     await this.httpService
       .post(url, body, {
@@ -140,8 +143,10 @@ export class YandexMarketIntegration {
       .toPromise()
       .catch((error) => {
         console.dir(error);
+        const { response } = error;
+        const { status, statusText } = response;
         this.logger.error(
-          `Can't send yandex.market prices.\nError: ${error.toString()}`,
+          `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}`,
         );
       });
   }
