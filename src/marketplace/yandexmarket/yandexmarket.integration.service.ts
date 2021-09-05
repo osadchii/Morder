@@ -195,7 +195,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
           $function: {
             body: `function (articul, settings, skus, settingsId) {
                 let needToUpdate = false;
-                const marketSku = skus[articul].toString();
+                let identifier = '';
+                const marketSku = skus[articul];
+                if (marketSku) {
+                  identifier = marketSku.toString();
+                }
                 let currentSku = '';
                 
                 if (settings) {
@@ -206,7 +210,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
                   })
                 }
                 
-                if (marketSku != currentSku) {
+                if (identifier != currentSku) {
                   needToUpdate = true;
                 }
                 return needToUpdate;
