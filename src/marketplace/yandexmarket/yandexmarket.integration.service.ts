@@ -247,18 +247,26 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     const product = await this.productModel.findById(productId);
 
     if (!product.marketplaceSettings) {
-      product.marketplaceSettings.push({
-        marketplaceId: marketplaceId,
-        ignoreRestrictions: false,
-        nullifyStock: false,
-      });
+      product.marketplaceSettings = [];
     }
+
+    let updated = false;
 
     product.marketplaceSettings.forEach((item) => {
       if (item.marketplaceId === marketplaceId) {
         item.identifier = identifier.toString();
+        updated = true;
       }
     });
+
+    if (!updated) {
+      product.marketplaceSettings.push({
+        marketplaceId: marketplaceId,
+        ignoreRestrictions: false,
+        nullifyStock: false,
+        identifier: identifier.toString(),
+      });
+    }
 
     return product.save();
   }
