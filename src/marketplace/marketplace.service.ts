@@ -69,17 +69,17 @@ export abstract class MarketplaceService {
       .exec();
   }
 
-  protected productInfo({
-    _id,
-    specialPriceName,
-    productTypes,
-  }: MarketplaceModel): Promise<MarketplaceProductModel[]> {
+  protected productInfo(
+    { _id, specialPriceName, productTypes }: MarketplaceModel,
+    filter?: object,
+  ): Promise<MarketplaceProductModel[]> {
     return this.productModel
       .aggregate()
       .match({
         isDeleted: false,
         categoryCode: { $exists: true },
         productType: { $in: productTypes },
+        ...filter,
       })
       .addFields({
         concreteMarketplaceSettings: {
@@ -127,6 +127,7 @@ export abstract class MarketplaceService {
         vendor: 1,
         vendorCode: 1,
         description: 1,
+        yandexMarketSku: 1,
         concreteMarketplaceSettings: 1,
         characteristics: 1,
       })
@@ -142,7 +143,7 @@ export abstract class MarketplaceService {
   }`;
   }
 
-  private static BlockerCategoryFunctionText(): string {
+  static BlockerCategoryFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
     if (!marketplaceSettings) {
       return false;
@@ -172,7 +173,7 @@ export abstract class MarketplaceService {
   }`;
   }
 
-  private static MarketplaceSettingsFunctionText(): string {
+  static MarketplaceSettingsFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
     if (marketplaceSettings) {
       for (const settings of marketplaceSettings) {

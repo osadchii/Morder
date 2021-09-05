@@ -85,7 +85,47 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   }
 
   @Interval(120000)
-  async updateHiddenProducts() {}
+  async updateHiddenProducts() {
+    const settings = await this.activeSettings();
+
+    for (const setting of settings) {
+      this.logger.log(`Start updating hidden products for ${setting.name}`);
+
+      const products = await this.actualProductsHiddenFlag(setting);
+      const service = new YandexMarketIntegration(setting, this.httpService);
+
+      const hiddenProducts = await service.getYandexMarketHiddenProducts();
+
+      const toHide = [];
+      const toShow = [];
+
+      products.forEach((available, yandexMarketSku) => {
+        const hidden = hiddenProducts.find(
+          (element) => element === yandexMarketSku,
+        );
+        if (hidden && available) {
+          toShow.push(yandexMarketSku);
+        }
+        if (!hidden && !available) {
+          toHide.push(yandexMarketSku);
+        }
+      });
+      this.logger.log(
+        `Need to hide ${toHide.length} products for ${setting.name}`,
+      );
+      this.logger.log(
+        `Need to show ${toShow.length} products for ${setting.name}`,
+      );
+
+      if (toHide.length > 0) {
+        await service.hideProducts(toHide);
+      }
+
+      if (toShow.length > 0) {
+        await service.showProducts(toShow);
+      }
+    }
+  }
 
   private async sendPricesFromQueue() {
     const settings = await this.marketplaceModel.find({
@@ -257,6 +297,77 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
+  private async activeSettings() {
+    return this.marketplaceModel
+      .find({
+        active: true,
+      })
+      .exec();
+  }
+
+  private async actualProductsHiddenFlag(
+    settings: YandexMarketModel,
+  ): Promise<Map<number, boolean>> {
+    const result = new Map<number, boolean>();
+
+    const categories = await this.categoryInfo(settings);
+    const products = await this.productInfo(settings, {
+      yandexMarketSku: { $exists: true },
+    });
+
+    const categoryInfo = new Map<string, boolean>();
+    categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
+
+    products.forEach((product) => {
+      if (!categoryInfo.has(product.categoryCode)) {
+        result.set(product.yandexMarketSku, false);
+        return;
+      }
+
+      if (!product.calculatedPrice) {
+        result.set(product.yandexMarketSku, false);
+        return;
+      }
+
+      const blocked = categoryInfo.get(product.categoryCode);
+      const { minimalPrice, nullifyStocks } = settings;
+
+      let available = true;
+      let ignoreRestrictions = false;
+      let nullifyProductStocks = false;
+
+      if (product.concreteMarketplaceSettings) {
+        const marketplaceSettings = product.concreteMarketplaceSettings;
+        ignoreRestrictions = marketplaceSettings.ignoreRestrictions;
+        nullifyProductStocks = marketplaceSettings.nullifyStock;
+      }
+
+      if (blocked && !ignoreRestrictions) {
+        available = false;
+      }
+
+      if (
+        minimalPrice > 0 &&
+        minimalPrice > product.calculatedPrice &&
+        !ignoreRestrictions
+      ) {
+        available = false;
+      }
+
+      if (nullifyProductStocks || nullifyStocks) {
+        product.stock = 0;
+      }
+
+      if (product.stock === 0) {
+        available = false;
+      }
+
+      result.set(product.yandexMarketSku, available);
+    });
+
+    return result;
+  }
+
   private async updatedYandexMarketPrices(
     settings: YandexMarketModel,
   ): Promise<UpdatedPrice[]> {
@@ -267,7 +378,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       fromDate = settings.lastPriceUpdate;
     }
 
-    this.logger.log(fromDate);
     return this.productModel
       .aggregate()
       .match({

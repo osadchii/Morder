@@ -25,6 +25,7 @@ export class MarketplaceProductModel {
   height?: number;
   length?: number;
   width?: number;
+  yandexMarketSku?: number;
   picture?: string;
   vendor?: string;
   vendorCode?: string;
