@@ -193,7 +193,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .addFields({
         needToUpdate: {
           $function: {
-            body: `function (articul, skus, settings, settingsId) {
+            body: `function (articul, settings, skus, settingsId) {
                 let needToUpdate = false;
                 const marketSku = skus[articul];
                 let currentSku = undefined;
@@ -211,7 +211,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
                 }
                 return needToUpdate;
               }`,
-            args: ['$articul', skus, '$marketplaceSettings', _id],
+            args: ['$articul', '$marketplaceSettings', skus, _id],
             lang: 'js',
           },
         },
@@ -265,6 +265,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     product.marketplaceSettings.forEach((item) => {
       if (item.marketplaceId == marketplaceId) {
         item.identifier = sku.toString();
+        this.logger.log(`Updated without new row ${sku}`);
         updated = true;
       }
     });
