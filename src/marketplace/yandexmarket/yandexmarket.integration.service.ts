@@ -53,7 +53,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       const map = await service.getYandexMarketSkus();
 
       this.logger.log(`Saving ${map.size} yandex.market skus`);
-      await this.setYandexMarketSkus(map);
+      await this.setYandexMarketSkus(setting, map);
       this.logger.log(`Updated all yandex.market skus`);
     }
   }
@@ -177,7 +177,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
-  private async setYandexMarketSkus(skus: Map<string, number>) {
+  private async setYandexMarketSkus(
+    { _id, name }: YandexMarketModel,
+    skus: Map<string, number>,
+  ) {
     const start = new Date().getTime();
     const productsToUpdate = (await this.productModel
       .aggregate()
@@ -187,15 +190,25 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .addFields({
         needToUpdate: {
           $function: {
-            body: `function(articul, yandexMarketSku, skus) {
-                    let needToUpdate = false;
-                    const marketSku = skus[articul];
-                    if (marketSku && yandexMarketSku !== marketSku) {
-                      needToUpdate = true;
+            body: `function (articul, skus, settings, settingsId){
+                let needToUpdate = false;
+                const marketSku = skus[articul];
+                let currentSku = undefined;
+                
+                if (settings){
+                  settings.forEach((item) => {
+                    if (item.marketplaceId == settingsId){
+                      currentSku = item.identifier;
                     }
-                    return needToUpdate;
-                  }`,
-            args: ['$articul', '$yandexMarketSku', skus],
+                  })
+                }
+                
+                if (currentSku !== marketSku){
+                  needToUpdate = true;
+                }
+                return needToUpdate;
+              }`,
+            args: ['$articul', skus, '$marketplaceSettings', _id],
             lang: 'js',
           },
         },
@@ -215,23 +228,39 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     );
 
     this.logger.log(
-      `Need to update ${productsToUpdate.length} yandex.market skus in products`,
+      `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
     );
     let updated = 0;
 
-    for (const { _id, articul } of productsToUpdate) {
-      const sku = skus.get(articul);
-      await this.productModel.findByIdAndUpdate(
-        _id,
-        {
-          yandexMarketSku: sku,
-        },
-        {
-          useFindAndModify: false,
-        },
-      );
+    for (const product of productsToUpdate) {
+      const sku = skus.get(product.articul);
+      await this.setYandexMarketSku(_id, _id, sku);
       this.logger.log(`Updated ${++updated} yandex.market skus`);
     }
+  }
+
+  private async setYandexMarketSku(
+    productId: Types.ObjectId,
+    marketplaceId: Types.ObjectId,
+    identifier: number | string,
+  ) {
+    const product = await this.productModel.findById(productId);
+
+    if (!product.marketplaceSettings) {
+      product.marketplaceSettings.push({
+        marketplaceId: marketplaceId,
+        ignoreRestrictions: false,
+        nullifyStock: false,
+      });
+    }
+
+    product.marketplaceSettings.forEach((item) => {
+      if (item.marketplaceId === marketplaceId) {
+        item.identifier = identifier;
+      }
+    });
+
+    return product.save();
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
@@ -324,7 +353,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     const categories = await this.categoryInfo(settings);
     const products = await this.productInfo(settings, {
-      yandexMarketSku: { $exists: true },
+      marketplaceSettings: { $exists: true },
     });
 
     this.logger.log(`Got ${products.length} products with yandex market sku`);
@@ -333,13 +362,16 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
     products.forEach((product) => {
-      if (!product.yandexMarketSku) {
+      if (
+        !product.concreteMarketplaceSettings.identifier ||
+        typeof product.concreteMarketplaceSettings.identifier !== 'number'
+      ) {
         return;
       }
       let available = true;
       const productInfo = {
         articul: product.articul,
-        yandexMarketSku: product.yandexMarketSku,
+        yandexMarketSku: product.concreteMarketplaceSettings.identifier,
       };
 
       if (!categoryInfo.has(product.categoryCode)) {
@@ -401,7 +433,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   private async updatedYandexMarketPrices(
     settings: YandexMarketModel,
   ): Promise<UpdatedPrice[]> {
-    const { specialPriceName } = settings;
+    const { specialPriceName, _id } = settings;
     let fromDate = new Date(2020, 1, 1);
 
     if (settings.lastPriceUpdate) {
@@ -411,7 +443,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     return this.productModel
       .aggregate()
       .match({
-        yandexMarketSku: { $exists: true },
+        marketplaceSettings: { $exists: true },
         isDeleted: false,
         priceUpdatedAt: { $gte: fromDate },
       })
@@ -424,6 +456,19 @@ export class YandexMarketIntegrationService extends MarketplaceService {
             lang: 'js',
           },
         },
+        concreteMarketplaceSettings: {
+          $function: {
+            body: MarketplaceService.MarketplaceSettingsFunctionText(),
+            args: ['$marketplaceSettings', _id],
+            lang: 'js',
+          },
+        },
+      })
+      .addFields({
+        yandexMarketSku: '$concreteMarketplaceSettings.identifier',
+      })
+      .match({
+        yandexMarketSku: { $exists: true },
       })
       .project({
         yandexMarketSku: 1,

@@ -8,6 +8,7 @@ export class MarketplaceProductCharacteristic {
 class MarketplaceSettings {
   nullifyStock: boolean;
   ignoreRestrictions: boolean;
+  identifier?: string | number;
 }
 
 export class MarketplaceProductModel {
@@ -25,7 +26,6 @@ export class MarketplaceProductModel {
   height?: number;
   length?: number;
   width?: number;
-  yandexMarketSku?: number;
   picture?: string;
   vendor?: string;
   vendorCode?: string;

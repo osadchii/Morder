@@ -38,7 +38,6 @@ class ProductCharacteristic {
 }
 
 class ProductMarketplaceSettings {
-
   @prop()
   marketplaceId: Types.ObjectId;
 
@@ -48,6 +47,8 @@ class ProductMarketplaceSettings {
   @prop()
   ignoreRestrictions: boolean;
 
+  @prop()
+  identifier?: number | string;
 }
 
 export interface ProductModel extends Base {
@@ -113,9 +114,6 @@ export class ProductModel extends TimeStamps {
 
   @prop({ text: true })
   description?: string;
-
-  @prop()
-  yandexMarketSku?: number;
 
   @prop()
   priceUpdatedAt?: Date;

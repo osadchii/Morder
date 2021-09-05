@@ -127,7 +127,6 @@ export abstract class MarketplaceService {
         vendor: 1,
         vendorCode: 1,
         description: 1,
-        yandexMarketSku: 1,
         concreteMarketplaceSettings: 1,
         characteristics: 1,
       })
@@ -181,6 +180,7 @@ export abstract class MarketplaceService {
           return {
             nullifyStock: settings.nullifyStock,
             ignoreRestrictions: settings.ignoreRestrictions,
+            identifier: settings.identifier
           };
         }
       }
