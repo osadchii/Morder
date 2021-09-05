@@ -100,6 +100,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
       const hiddenProducts = await service.getYandexMarketHiddenProducts();
 
+      this.logger.log(
+        `Got ${hiddenProducts.length} hidden products of ${setting.name}`,
+      );
+
       const toHide = [];
       const toShow = [];
 
