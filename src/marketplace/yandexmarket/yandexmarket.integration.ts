@@ -73,7 +73,6 @@ export class YandexMarketIntegration {
     this.logger.log(
       `Starting sending hide products request.\nUrl: ${url}\nHidden offers in body: ${body.hiddenOffers.length}`,
     );
-    console.dir(body);
 
     await this.httpService
       .post(url, body, {
@@ -112,9 +111,10 @@ export class YandexMarketIntegration {
       })
       .toPromise()
       .catch((error) => {
-        console.dir(error);
+        const { response } = error;
+        const { status, statusText } = response;
         this.logger.error(
-          `Can't show yandex.market skus.\nError: ${error.toString()}`,
+          `Can't show yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}`,
         );
       });
   }
@@ -143,7 +143,6 @@ export class YandexMarketIntegration {
       })
       .toPromise()
       .catch((error) => {
-        console.dir(error);
         const { response } = error;
         const { status, statusText } = response;
         this.logger.error(
@@ -183,9 +182,10 @@ export class YandexMarketIntegration {
         });
       })
       .catch((error) => {
-        console.dir(error);
+        const { response } = error;
+        const { status, statusText } = response;
         this.logger.error(
-          `Can't get yandex.market hidden offers.\nError: ${error.toString()}`,
+          `Can't get hidden products from yandex.market.\nStatus: ${status}\nStatus text: ${statusText}`,
         );
       });
 
