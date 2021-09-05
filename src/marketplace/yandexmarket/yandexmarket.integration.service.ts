@@ -121,11 +121,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       );
 
       if (toHide.length > 0) {
-        await service.hideProducts(toHide);
+        await service.hideProducts(toHide.slice(1000));
       }
 
       if (toShow.length > 0) {
-        await service.showProducts(toShow);
+        await service.showProducts(toShow.slice(1000));
       }
     }
   }
@@ -318,7 +318,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       yandexMarketSku: { $exists: true },
     });
 
-    this.logger.log(`Got ${products.length} with yandex market sku`);
+    this.logger.log(`Got ${products.length} products with yandex market sku`);
 
     const categoryInfo = new Map<string, boolean>();
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
