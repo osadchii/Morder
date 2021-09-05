@@ -252,23 +252,29 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     let updated = false;
 
-    product.marketplaceSettings.forEach((item) => {
-      if (item.marketplaceId === marketplaceId) {
-        item.identifier = sku.toString();
-        updated = true;
-      }
-    });
-
-    if (!updated) {
-      product.marketplaceSettings.push({
-        marketplaceId: marketplaceId,
-        ignoreRestrictions: false,
-        nullifyStock: false,
-        identifier: sku.toString(),
+    try {
+      product.marketplaceSettings.forEach((item) => {
+        if (item.marketplaceId === marketplaceId) {
+          item.identifier = sku.toString();
+          updated = true;
+        }
       });
-    }
 
-    return product.save();
+      if (!updated) {
+        product.marketplaceSettings.push({
+          marketplaceId: marketplaceId,
+          ignoreRestrictions: false,
+          nullifyStock: false,
+          identifier: sku.toString(),
+        });
+      }
+
+      return product.save();
+    } catch (error) {
+      this.logger.error(
+        `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}`,
+      );
+    }
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
