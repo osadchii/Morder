@@ -79,7 +79,8 @@ export class YandexMarketIntegration {
       })
       .toPromise()
       .catch((error) => {
-        console.dir(error);
+        const { response } = error;
+        console.dir(response);
         this.logger.error(
           `Can't hide yandex.market skus.\nError: ${error.toString()}`,
         );
