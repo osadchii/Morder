@@ -1,6 +1,6 @@
 interface Result {
   hiddenOffers: {
-    marketSku: number;
+    offerId: string;
   }[];
   paging?: {
     nextPageToken?: string;

@@ -1,4 +1,4 @@
 export interface YandexMarketHiddenOffersPageModel {
   nextPageToken?: string;
-  items: number[];
+  items: string[];
 }

@@ -84,7 +84,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     await this.sendPricesFromQueue();
   }
 
-  @Interval(120000)
+  @Interval(30000)
   async updateHiddenProducts() {
     const settings = await this.activeSettings();
     const sendLimit = 200;
@@ -94,7 +94,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
       const products = await this.actualProductsHiddenFlag(setting);
       this.logger.log(
-        `Got ${products.size} products to update hidden products for ${setting.name}`,
+        `Got ${products.length} products to update hidden products for ${setting.name}`,
       );
       const service = new YandexMarketIntegration(setting, this.httpService);
 
@@ -107,10 +107,8 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       const toHide = [];
       const toShow = [];
 
-      products.forEach((available, yandexMarketSku) => {
-        const hidden = hiddenProducts.find(
-          (element) => element === yandexMarketSku,
-        );
+      products.forEach(({ yandexMarketSku, articul, available }) => {
+        const hidden = hiddenProducts.find((element) => element === articul);
         if (hidden && available) {
           toShow.push(yandexMarketSku);
         }
@@ -315,8 +313,14 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   private async actualProductsHiddenFlag(
     settings: YandexMarketModel,
-  ): Promise<Map<number, boolean>> {
-    const result = new Map<number, boolean>();
+  ): Promise<
+    { articul: string; yandexMarketSku: number; available: boolean }[]
+  > {
+    const result: {
+      articul: string;
+      yandexMarketSku: number;
+      available: boolean;
+    }[] = [];
 
     const categories = await this.categoryInfo(settings);
     const products = await this.productInfo(settings, {
@@ -329,20 +333,30 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
     products.forEach((product) => {
+      let available = true;
+      const productInfo = {
+        articul: product.articul,
+        yandexMarketSku: product.yandexMarketSku,
+      };
+
       if (!categoryInfo.has(product.categoryCode)) {
-        result.set(product.yandexMarketSku, false);
+        result.push({
+          ...productInfo,
+          available: false,
+        });
         return;
       }
 
       if (!product.calculatedPrice) {
-        result.set(product.yandexMarketSku, false);
+        result.push({
+          ...productInfo,
+          available: false,
+        });
         return;
       }
 
       const blocked = categoryInfo.get(product.categoryCode);
       const { minimalPrice, nullifyStocks } = settings;
-
-      let available = true;
       let ignoreRestrictions = false;
       let nullifyProductStocks = false;
 
@@ -372,7 +386,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         available = false;
       }
 
-      result.set(product.yandexMarketSku, available);
+      result.push({
+        ...productInfo,
+        available: available,
+      });
     });
 
     return result;

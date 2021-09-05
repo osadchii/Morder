@@ -37,10 +37,10 @@ export class YandexMarketIntegration {
     return map;
   }
 
-  async getYandexMarketHiddenProducts(): Promise<number[]> {
+  async getYandexMarketHiddenProducts(): Promise<string[]> {
     let pageToken: string = undefined;
     let stopped = false;
-    const hiddenOffers: number[] = [];
+    const hiddenOffers: string[] = [];
 
     while (!stopped) {
       const result = await this.getYandexMarketHiddenProductsPage(pageToken);
@@ -178,7 +178,7 @@ export class YandexMarketIntegration {
           result.nextPageToken = paging.nextPageToken;
         }
         hiddenOffers.forEach((item) => {
-          result.items.push(item.marketSku);
+          result.items.push(item.offerId);
         });
       })
       .catch((error) => {
