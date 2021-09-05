@@ -190,12 +190,12 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .addFields({
         needToUpdate: {
           $function: {
-            body: `function (articul, skus, settings, settingsId){
+            body: `function (articul, skus, settings, settingsId) {
                 let needToUpdate = false;
                 const marketSku = skus[articul];
                 let currentSku = undefined;
                 
-                if (settings){
+                if (settings) {
                   settings.forEach((item) => {
                     if (item.marketplaceId == settingsId){
                       currentSku = item.identifier;
@@ -203,7 +203,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
                   })
                 }
                 
-                if (currentSku !== marketSku){
+                if (currentSku != marketSku) {
                   needToUpdate = true;
                 }
                 return needToUpdate;
