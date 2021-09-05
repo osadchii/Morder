@@ -87,6 +87,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   @Interval(120000)
   async updateHiddenProducts() {
     const settings = await this.activeSettings();
+    const sendLimit = 500;
 
     for (const setting of settings) {
       this.logger.log(`Start updating hidden products for ${setting.name}`);
@@ -121,11 +122,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       );
 
       if (toHide.length > 0) {
-        await service.hideProducts(toHide.slice(200));
+        await service.hideProducts(toHide.slice(0, sendLimit));
       }
 
       if (toShow.length > 0) {
-        await service.showProducts(toShow.slice(200));
+        await service.showProducts(toShow.slice(0, sendLimit));
       }
     }
   }
