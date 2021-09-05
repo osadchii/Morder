@@ -233,13 +233,21 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     this.logger.log(
       `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
     );
-    let updated = 0;
+    let errors = 0;
 
     for (const product of productsToUpdate) {
       const sku = skus.get(product.articul);
-      await this.setYandexMarketSku(product._id, _id, sku);
-      this.logger.log(`Updated ${++updated} yandex.market skus`);
+      try {
+        await this.setYandexMarketSku(product._id, _id, sku);
+      } catch (error) {
+        this.logger.error(
+          `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}`,
+        );
+        errors++;
+      }
     }
+
+    this.logger.log(`Errors while saving ym skus: ${errors}`);
   }
 
   private async setYandexMarketSku(
@@ -254,30 +262,23 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }
 
     let updated = false;
-
-    try {
-      product.marketplaceSettings.forEach((item) => {
-        if (item.marketplaceId === marketplaceId) {
-          item.identifier = sku.toString();
-          updated = true;
-        }
-      });
-
-      if (!updated) {
-        product.marketplaceSettings.push({
-          marketplaceId: marketplaceId,
-          ignoreRestrictions: false,
-          nullifyStock: false,
-          identifier: sku.toString(),
-        });
+    product.marketplaceSettings.forEach((item) => {
+      if (item.marketplaceId === marketplaceId) {
+        item.identifier = sku.toString();
+        updated = true;
       }
+    });
 
-      return product.save();
-    } catch (error) {
-      this.logger.error(
-        `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}`,
-      );
+    if (!updated) {
+      product.marketplaceSettings.push({
+        marketplaceId: marketplaceId,
+        ignoreRestrictions: false,
+        nullifyStock: false,
+        identifier: sku.toString(),
+      });
     }
+
+    return product.save();
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
