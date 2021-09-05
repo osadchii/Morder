@@ -121,11 +121,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       );
 
       if (toHide.length > 0) {
-        await service.hideProducts(toHide.slice(500));
+        await service.hideProducts(toHide.slice(200));
       }
 
       if (toShow.length > 0) {
-        await service.showProducts(toShow.slice(500));
+        await service.showProducts(toShow.slice(200));
       }
     }
   }
