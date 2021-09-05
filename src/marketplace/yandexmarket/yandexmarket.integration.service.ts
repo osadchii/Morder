@@ -244,7 +244,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     marketplaceId: Types.ObjectId,
     identifier: number,
   ) {
-    const product = await this.productModel.findById(productId);
+    const product = await this.productModel.findById(productId).exec();
 
     if (!product.marketplaceSettings) {
       product.marketplaceSettings = [];
