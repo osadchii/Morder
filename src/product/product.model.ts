@@ -48,7 +48,7 @@ class ProductMarketplaceSettings {
   ignoreRestrictions: boolean;
 
   @prop()
-  identifier?: number | string;
+  identifier?: string;
 }
 
 export interface ProductModel extends Base {

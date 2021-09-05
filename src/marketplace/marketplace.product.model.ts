@@ -8,7 +8,7 @@ export class MarketplaceProductCharacteristic {
 class MarketplaceSettings {
   nullifyStock: boolean;
   ignoreRestrictions: boolean;
-  identifier?: string | number;
+  identifier?: string;
 }
 
 export class MarketplaceProductModel {

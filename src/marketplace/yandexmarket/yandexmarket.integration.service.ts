@@ -242,7 +242,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
   private async setYandexMarketSku(
     productId: Types.ObjectId,
     marketplaceId: Types.ObjectId,
-    identifier: number | string,
+    identifier: number,
   ) {
     const product = await this.productModel.findById(productId);
 
@@ -256,7 +256,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     product.marketplaceSettings.forEach((item) => {
       if (item.marketplaceId === marketplaceId) {
-        item.identifier = identifier;
+        item.identifier = identifier.toString();
       }
     });
 
@@ -362,16 +362,15 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
     products.forEach((product) => {
-      if (
-        !product.concreteMarketplaceSettings.identifier ||
-        typeof product.concreteMarketplaceSettings.identifier !== 'number'
-      ) {
+      if (!product.concreteMarketplaceSettings.identifier) {
         return;
       }
       let available = true;
       const productInfo = {
         articul: product.articul,
-        yandexMarketSku: product.concreteMarketplaceSettings.identifier,
+        yandexMarketSku: Number.parseInt(
+          product.concreteMarketplaceSettings.identifier,
+        ),
       };
 
       if (!categoryInfo.has(product.categoryCode)) {
@@ -485,7 +484,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     for (const updatedPrice of updatedPrices) {
       await this.sendPriceQueue.create({
         marketplaceId: _id,
-        marketSku: updatedPrice.yandexMarketSku,
+        marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
         price: updatedPrice.calculatedPrice,
       });
     }

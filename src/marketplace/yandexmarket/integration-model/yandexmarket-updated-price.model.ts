@@ -1,5 +1,5 @@
 export interface UpdatedPrice {
-  yandexMarketSku: number;
+  yandexMarketSku: string;
   calculatedPrice: number;
   updatedAt: Date;
 }
