@@ -60,6 +60,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(60000)
   async updateYandexPricesQueue() {
+    return;
     const settings = await this.settingsToUpdatePrices();
 
     this.logger.log(
@@ -81,11 +82,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(90000)
   async sendPricesToYandexMarket() {
+    return;
     await this.sendPricesFromQueue();
   }
 
   @Interval(30000)
   async updateHiddenProducts() {
+    return;
     const settings = await this.activeSettings();
     const sendLimit = 5;
 
@@ -366,9 +369,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }[] = [];
 
     const categories = await this.categoryInfo(settings);
-    const products = await this.productInfo(settings, {
-      marketplaceSettings: { $exists: true },
-    });
+    const products = await this.productInfo(settings);
 
     this.logger.log(`Got ${products.length} products with yandex market sku`);
 
@@ -376,7 +377,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     categories.forEach((item) => categoryInfo.set(item.erpCode, item.blocked));
 
     products.forEach((product) => {
-      if (!product.concreteMarketplaceSettings.identifier) {
+      if (
+        !product.concreteMarketplaceSettings ||
+        !product.concreteMarketplaceSettings.identifier
+      ) {
         return;
       }
       let available = true;
@@ -456,7 +460,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     return this.productModel
       .aggregate()
       .match({
-        marketplaceSettings: { $exists: true },
         isDeleted: false,
         priceUpdatedAt: { $gte: fromDate },
       })
