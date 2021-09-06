@@ -88,11 +88,17 @@ export class YandexMarketSkuUpdater {
     for (const marketplaceSetting of product.marketplaceSettings) {
       const marketplaceId = marketplaceSetting.marketplaceId.toHexString();
       const isDesired = marketplaceId == settingId;
+      this.logger.log(
+        `${marketplaceId} == ${settingId} = ${isDesired} (isDesired)`,
+      );
 
       if (isDesired) {
         const skuAlreadySet =
           marketplaceSetting.identifier &&
           marketplaceSetting.identifier == yandexSku;
+        this.logger.log(
+          `${marketplaceSetting.identifier} && ${marketplaceSetting.identifier} == ${yandexSku} = ${skuAlreadySet} (skuAlreadySet)`,
+        );
 
         if (!skuAlreadySet) {
           marketplaceSetting.identifier = yandexSku;
