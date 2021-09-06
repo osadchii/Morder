@@ -218,7 +218,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         }
       } catch (error) {
         this.logger.error(
-          `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}`,
+          `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}.\n${error.stack}`,
         );
         errors++;
       }
