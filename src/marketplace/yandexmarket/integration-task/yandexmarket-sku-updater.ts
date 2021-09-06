@@ -51,6 +51,7 @@ export class YandexMarketSkuUpdater {
       `Received ${products.length} products to update Yandex.Market SKUs for ${setting.name}`,
     );
 
+    let updated = 0;
     for (const product of products) {
       const { articul } = product;
 
@@ -63,6 +64,9 @@ export class YandexMarketSkuUpdater {
 
       const sku = yandexSkus.get(articul).toString();
       await this.setYandexMarketSku(product, setting, sku);
+      if (updated++ > 5) {
+        return;
+      }
     }
   }
 
@@ -128,7 +132,9 @@ export class YandexMarketSkuUpdater {
         .exec();
       this.logger.log(
         `Updated ${product.articul}. The identifier ${
-          hasSet ? `was set in branch ${branch}` : "wasn't set"
+          hasSet
+            ? `was set in branch ${branch}. Setting id: ${settingId}`
+            : "wasn't set"
         }`,
       );
     }
