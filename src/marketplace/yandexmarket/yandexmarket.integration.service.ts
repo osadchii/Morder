@@ -250,11 +250,16 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     let needUpdate = false;
 
     for (const currentSetting of marketplaceSettings) {
-      const alreadyInNew = newSettings.find((item) => {
-        return item.marketplaceId == currentSetting.marketplaceId;
-      });
+      let alreadyInNew = false;
 
-      if (typeof alreadyInNew !== 'undefined') {
+      for (const newSetting of newSettings) {
+        if (newSetting.marketplaceId == currentSetting.marketplaceId) {
+          alreadyInNew = true;
+          break;
+        }
+      }
+
+      if (alreadyInNew) {
         needUpdate = true;
         continue;
       }
