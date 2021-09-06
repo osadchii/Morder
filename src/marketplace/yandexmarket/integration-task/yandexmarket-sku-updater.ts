@@ -2,12 +2,8 @@ import { YandexMarketModel } from '../yandexmarket.model';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { HttpService } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
-import {
-  ProductMarketplaceSettings,
-  ProductModel,
-} from '../../../product/product.model';
+import { ProductModel } from '../../../product/product.model';
 import { YandexMarketIntegration } from '../yandexmarket.integration';
-import { Types } from 'mongoose';
 
 export class YandexMarketSkuUpdater {
   private readonly logger = new Logger(YandexMarketSkuUpdater.name);
@@ -22,6 +18,7 @@ export class YandexMarketSkuUpdater {
     const settings = await this.settingsToUpdateSkus();
 
     for (const setting of settings) {
+      this.logger.log(`Start updating ${setting.name} SKUs`);
       await this.updateYandexMarketSkusBySetting(setting);
     }
   }
@@ -32,6 +29,10 @@ export class YandexMarketSkuUpdater {
     const integration = new YandexMarketIntegration(setting, this.httpService);
     const yandexSkus = await integration.getYandexMarketSkus();
 
+    this.logger.log(
+      `Received ${yandexSkus.size} Yandex.Market SKUs for ${setting.name}`,
+    );
+
     if (yandexSkus.size === 0) {
       return;
     }
@@ -40,13 +41,93 @@ export class YandexMarketSkuUpdater {
   }
 
   private async setYandexMarketSkus(
-    { _id, name }: YandexMarketModel,
-    skus: Map<string, number>,
+    setting: YandexMarketModel,
+    yandexSkus: Map<string, number>,
   ) {
-    const productsToUpdate = await this.productModel
+    const products = await this.productsByArticuls([...yandexSkus.keys()]);
+
+    this.logger.log(
+      `Received ${products.length} products to update Yandex.Market SKUs for ${setting.name}`,
+    );
+
+    for (const product of products) {
+      const { articul } = product;
+
+      if (!yandexSkus.has(articul)) {
+        this.logger.warn(
+          `Can't find Yandex.Market SKU for articul ${articul} for ${setting.name}`,
+        );
+        continue;
+      }
+
+      const sku = yandexSkus.get(articul).toString();
+      await this.setYandexMarketSku(product, setting, sku);
+    }
+  }
+
+  private async setYandexMarketSku(
+    product: ProductModel,
+    setting: YandexMarketModel,
+    yandexSku: string,
+  ) {
+    let hasSet = false;
+    let needSave = false;
+
+    if (!product.marketplaceSettings) {
+      product.marketplaceSettings = [];
+    }
+
+    for (const marketplaceSetting of product.marketplaceSettings) {
+      if (marketplaceSetting.marketplaceId === setting._id) {
+        hasSet = true;
+        if (
+          !marketplaceSetting.identifier ||
+          marketplaceSetting.identifier !== yandexSku
+        ) {
+          marketplaceSetting.identifier = yandexSku;
+          needSave = true;
+        }
+      }
+    }
+
+    if (!hasSet) {
+      product.marketplaceSettings.push({
+        marketplaceId: setting._id,
+        ignoreRestrictions: false,
+        nullifyStock: false,
+        identifier: yandexSku,
+      });
+
+      hasSet = true;
+      needSave = true;
+    }
+
+    if (needSave) {
+      await this.productModel
+        .findByIdAndUpdate(
+          product._id,
+          {
+            marketplaceSettings: product.marketplaceSettings,
+          },
+          {
+            useFindAndModify: false,
+          },
+        )
+        .exec();
+      this.logger.log(
+        `Updated ${product.articul}. The identifier ${
+          hasSet ? 'was set' : "wasn't set"
+        }`,
+      );
+    }
+  }
+
+  private async productsByArticuls(articuls: string[]) {
+    return this.productModel
       .find(
         {
-          articul: { $in: [...skus.keys()] },
+          articul: { $in: articuls },
+          isDeleted: false,
         },
         {
           _id: 1,
@@ -55,106 +136,6 @@ export class YandexMarketSkuUpdater {
         },
       )
       .exec();
-
-    this.logger.log(
-      `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
-    );
-    let errors = 0;
-    let updated = 0;
-
-    for (const product of productsToUpdate) {
-      const sku = skus.get(product.articul);
-      if (typeof sku === 'undefined') {
-        this.logger.log(`Sku for ${product.articul} not found`);
-        continue;
-      }
-      try {
-        const result = await this.setYandexMarketSku(product, _id, sku);
-        if (result) {
-          updated++;
-        }
-      } catch (error) {
-        this.logger.error(
-          `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}.\n${error.stack}`,
-        );
-        errors++;
-      }
-    }
-
-    this.logger.log(`Errors while saving ym skus: ${errors}`);
-    this.logger.log(`Updated ym skus: ${updated}`);
-  }
-
-  private async setYandexMarketSku(
-    product: ProductModel,
-    marketplaceId: Types.ObjectId,
-    sku: number,
-  ): Promise<boolean> {
-    if (!product.marketplaceSettings) {
-      product.marketplaceSettings = [];
-    }
-
-    const { marketplaceSettings } = product;
-    const newSettings: ProductMarketplaceSettings[] = [];
-    const mId = marketplaceId.toHexString();
-    const identifier = sku.toString();
-    let needUpdate = false;
-
-    for (const currentSetting of marketplaceSettings) {
-      let alreadyInNew = false;
-
-      for (const newSetting of newSettings) {
-        if (
-          newSetting.marketplaceId.toHexString() ==
-          currentSetting.marketplaceId.toHexString()
-        ) {
-          alreadyInNew = true;
-          break;
-        }
-      }
-
-      if (alreadyInNew) {
-        needUpdate = true;
-        this.logger.log(`SKU: ${identifier}. Zero branch`);
-        continue;
-      }
-
-      if (
-        (currentSetting.marketplaceId.toHexString() == mId &&
-          currentSetting.identifier == identifier) ||
-        currentSetting.marketplaceId.toHexString() != mId
-      ) {
-        newSettings.push({
-          ...currentSetting,
-        });
-        this.logger.log(
-          `SKU: ${identifier}. First branch.
-          \nCurrent MP ID: ${currentSetting.marketplaceId}. MP ID: ${mId}
-          \nCurrent ID: ${currentSetting.identifier}. ID: ${identifier}`,
-        );
-      } else {
-        newSettings.push({
-          ...currentSetting,
-          identifier: identifier,
-        });
-        this.logger.log(`SKU: ${identifier}. Second branch`);
-        needUpdate = true;
-      }
-    }
-
-    await this.productModel
-      .findByIdAndUpdate(
-        product._id,
-        {
-          marketplaceSettings: newSettings,
-        },
-        {
-          useFindAndModify: false,
-        },
-      )
-      .exec();
-
-    return needUpdate;
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
