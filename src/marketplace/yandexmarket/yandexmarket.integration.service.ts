@@ -240,6 +240,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     const { marketplaceSettings } = product;
     const newSettings: ProductMarketplaceSettings[] = [];
+    const mId = marketplaceId.toHexString();
     const identifier = sku.toString();
     let needUpdate = false;
 
@@ -263,18 +264,16 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       }
 
       if (
-        (currentSetting.marketplaceId.toHexString() ==
-          marketplaceId.toHexString() &&
+        (currentSetting.marketplaceId.toHexString() == mId &&
           currentSetting.identifier == identifier) ||
-        currentSetting.marketplaceId.toHexString() !=
-          marketplaceId.toHexString()
+        currentSetting.marketplaceId.toHexString() != mId
       ) {
         newSettings.push({
           ...currentSetting,
         });
         this.logger.log(
           `SKU: ${identifier}. First branch.
-          \nCurrent MP ID: ${currentSetting.marketplaceId}. MP ID: ${marketplaceId}
+          \nCurrent MP ID: ${currentSetting.marketplaceId}. MP ID: ${mId}
           \nCurrent ID: ${currentSetting.identifier}. ID: ${identifier}`,
         );
       } else {
