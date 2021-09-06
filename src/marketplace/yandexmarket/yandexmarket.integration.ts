@@ -200,7 +200,7 @@ export class YandexMarketIntegration {
     const { campaignId } = this.settings;
 
     const pageParameter = nextPageToken ? `&page_token=${nextPageToken}` : '';
-    const url = `${this.baseUrl}/${campaignId}/offer-mapping-entries.json?status=READY${pageParameter}`;
+    const url = `${this.baseUrl}/${campaignId}/offer-mapping-entries.json?status=READY&limit=200${pageParameter}`;
 
     const result: YandexMarketSkuPageModel = {
       items: new Map<string, number>(),

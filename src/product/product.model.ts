@@ -37,7 +37,7 @@ class ProductCharacteristic {
 
 }
 
-class ProductMarketplaceSettings {
+export class ProductMarketplaceSettings {
   @prop()
   marketplaceId: Types.ObjectId;
 

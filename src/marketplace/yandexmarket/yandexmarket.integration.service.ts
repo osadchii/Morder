@@ -4,7 +4,10 @@ import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CompanyModel } from '../../company/company.model';
 import { CategoryModel } from '../../category/category.model';
-import { ProductModel } from '../../product/product.model';
+import {
+  ProductMarketplaceSettings,
+  ProductModel,
+} from '../../product/product.model';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
@@ -242,7 +245,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }
 
     const { marketplaceSettings } = product;
-    const newSettings = [];
+    const newSettings: ProductMarketplaceSettings[] = [];
     const identifier = sku.toString();
     let needUpdate = false;
 
@@ -251,7 +254,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         return item.marketplaceId == currentSetting.marketplaceId;
       });
 
-      if (alreadyInNew) {
+      if (typeof alreadyInNew !== 'undefined') {
         needUpdate = true;
         continue;
       }
