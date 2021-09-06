@@ -185,49 +185,18 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     skus: Map<string, number>,
   ) {
     const start = new Date().getTime();
-    const productsToUpdate = (await this.productModel
-      .aggregate()
-      .match({
-        articul: { $in: [...skus.keys()] },
-      })
-      .addFields({
-        needToUpdate: {
-          $function: {
-            body: `function (articul, settings, skus, settingsId) {
-                let needToUpdate = false;
-                let identifier = '';
-                const marketSku = skus[articul];
-                if (marketSku) {
-                  identifier = marketSku.toString();
-                }
-                let currentSku = '';
-                
-                if (settings) {
-                  settings.forEach((item) => {
-                    if (item.marketplaceId == settingsId) {
-                      currentSku = item.identifier;
-                    }
-                  })
-                }
-                
-                if (identifier != currentSku) {
-                  needToUpdate = true;
-                }
-                return needToUpdate;
-              }`,
-            args: ['$articul', '$marketplaceSettings', skus, _id],
-            lang: 'js',
-          },
+    const productsToUpdate = await this.productModel
+      .find(
+        {
+          articul: { $in: [...skus.keys()] },
         },
-      })
-      .match({
-        needToUpdate: true,
-      })
-      .project({
-        _id: 1,
-        articul: 1,
-      })
-      .exec()) as { _id: Types.ObjectId; articul: string }[];
+        {
+          _id: 1,
+          articul: 1,
+          marketplaceSettings: 1,
+        },
+      )
+      .exec();
     const end = new Date().getTime();
 
     this.logger.warn(
@@ -238,11 +207,15 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
     );
     let errors = 0;
+    let updated = 0;
 
     for (const product of productsToUpdate) {
       const sku = skus.get(product.articul);
       try {
-        await this.setYandexMarketSku(product._id, _id, sku);
+        const result = await this.setYandexMarketSku(product, _id, sku);
+        if (result) {
+          updated++;
+        }
       } catch (error) {
         this.logger.error(
           `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}`,
@@ -252,38 +225,65 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     }
 
     this.logger.log(`Errors while saving ym skus: ${errors}`);
+    this.logger.log(`Updated ym skus: ${updated}`);
   }
 
   private async setYandexMarketSku(
-    productId: Types.ObjectId,
+    product: ProductModel,
     marketplaceId: Types.ObjectId,
     sku: number,
-  ) {
-    const product = await this.productModel.findById(productId).exec();
-
+  ): Promise<boolean> {
     if (!product.marketplaceSettings) {
       product.marketplaceSettings = [];
     }
 
-    let updated = false;
+    const { marketplaceSettings } = product;
+    const newSettings = [];
+    const identifier = sku.toString();
+    let needUpdate = false;
 
-    for (const settings of product.marketplaceSettings) {
-      if (settings.marketplaceId == marketplaceId) {
-        settings.identifier = sku.toString();
-        updated = true;
+    for (const currentSetting of marketplaceSettings) {
+      const alreadyInNew = newSettings.find((item) => {
+        return item.marketplaceId === currentSetting.marketplaceId;
+      });
+
+      if (alreadyInNew) {
+        needUpdate = true;
+        continue;
+      }
+
+      if (
+        (currentSetting.marketplaceId === marketplaceId &&
+          currentSetting.identifier === identifier) ||
+        currentSetting.marketplaceId !== marketplaceId
+      ) {
+        newSettings.push({
+          ...currentSetting,
+        });
+      } else {
+        newSettings.push({
+          ...currentSetting,
+          identifier: identifier,
+        });
+        needUpdate = true;
       }
     }
 
-    if (!updated) {
-      product.marketplaceSettings.push({
-        marketplaceId: marketplaceId,
-        ignoreRestrictions: false,
-        nullifyStock: false,
-        identifier: sku.toString(),
-      });
+    if (needUpdate) {
+      await this.productModel
+        .findByIdAndUpdate(
+          product._id,
+          {
+            marketplaceSettings: newSettings,
+          },
+          {
+            useFindAndModify: false,
+          },
+        )
+        .exec();
     }
 
-    return product.save();
+    return needUpdate;
   }
 
   private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
