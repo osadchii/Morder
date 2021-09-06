@@ -13,6 +13,7 @@ import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 import { UpdatedPrice } from './integration-model/yandexmarket-updated-price.model';
 import { YandexMarketSkuUpdater } from './integration-task/yandexmarket-sku-updater';
+import { YandexMarketPriceUpdater } from './integration-task/yandexmarket-price-updater';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -47,24 +48,31 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(60000)
   async updateYandexPricesQueue() {
-    return;
-    const settings = await this.settingsToUpdatePrices();
-
-    this.logger.log(
-      `Got ${settings.length} yandex.market settings to update prices`,
+    const updater = new YandexMarketPriceUpdater(
+      this.marketplaceModel,
+      this.productModel,
+      this.sendPriceQueue,
+      this.httpService,
     );
-
-    for (const setting of settings) {
-      const now = new Date();
-      const prices = await this.updatedYandexMarketPrices(setting);
-
-      this.logger.log(
-        `Got ${prices.length} prices to update in ${setting.name}`,
-      );
-
-      await this.saveUpdatedPricesToQueue(setting, prices);
-      await this.setLastUpdatePrices(setting, now);
-    }
+    await updater.updatePriceQueues();
+    // return;
+    // const settings = await this.settingsToUpdatePrices();
+    //
+    // this.logger.log(
+    //   `Got ${settings.length} yandex.market settings to update prices`,
+    // );
+    //
+    // for (const setting of settings) {
+    //   const now = new Date();
+    //   const prices = await this.updatedYandexMarketPrices(setting);
+    //
+    //   this.logger.log(
+    //     `Got ${prices.length} prices to update in ${setting.name}`,
+    //   );
+    //
+    //   await this.saveUpdatedPricesToQueue(setting, prices);
+    //   await this.setLastUpdatePrices(setting, now);
+    // }
   }
 
   @Interval(90000)
