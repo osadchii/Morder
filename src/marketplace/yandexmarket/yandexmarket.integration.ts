@@ -223,10 +223,9 @@ export class YandexMarketIntegration {
           result.nextPageToken = paging.nextPageToken;
         }
         offerMappingEntries.forEach((item) => {
-          if (!item.mapping || item.mapping.marketSku) {
-            return;
+          if (item.mapping && item.mapping.marketSku) {
+            result.items.set(item.offer.shopSku, item.mapping.marketSku);
           }
-          result.items.set(item.offer.shopSku, item.mapping.marketSku);
         });
       })
       .catch((error) => {
