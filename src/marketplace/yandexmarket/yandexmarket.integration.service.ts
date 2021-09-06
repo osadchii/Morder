@@ -267,7 +267,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         newSettings.push({
           ...currentSetting,
         });
-        this.logger.log(`SKU: ${identifier}. First branch`);
+        this.logger.log(
+          `SKU: ${identifier}. First branch. Current MP ID: ${currentSetting.marketplaceId}. MP ID: ${marketplaceId}`,
+        );
       } else {
         newSettings.push({
           ...currentSetting,
