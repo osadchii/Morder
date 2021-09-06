@@ -72,6 +72,7 @@ export class YandexMarketSkuUpdater {
   ) {
     let hasSet = false;
     let needSave = false;
+    let setBranch = 0;
 
     if (!product.marketplaceSettings) {
       product.marketplaceSettings = [];
@@ -80,12 +81,14 @@ export class YandexMarketSkuUpdater {
     for (const marketplaceSetting of product.marketplaceSettings) {
       if (marketplaceSetting.marketplaceId === setting._id) {
         hasSet = true;
+        setBranch = 1;
         if (
           !marketplaceSetting.identifier ||
           marketplaceSetting.identifier !== yandexSku
         ) {
           marketplaceSetting.identifier = yandexSku;
           needSave = true;
+          setBranch = 2;
         }
       }
     }
@@ -100,6 +103,7 @@ export class YandexMarketSkuUpdater {
 
       hasSet = true;
       needSave = true;
+      setBranch = 3;
     }
 
     if (needSave) {
@@ -116,7 +120,7 @@ export class YandexMarketSkuUpdater {
         .exec();
       this.logger.log(
         `Updated ${product.articul}. The identifier ${
-          hasSet ? 'was set' : "wasn't set"
+          hasSet ? `was set in branch ${setBranch}` : "wasn't set"
         }`,
       );
     }
