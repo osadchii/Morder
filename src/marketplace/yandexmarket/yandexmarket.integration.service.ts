@@ -248,7 +248,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
     for (const currentSetting of marketplaceSettings) {
       const alreadyInNew = newSettings.find((item) => {
-        return item.marketplaceId === currentSetting.marketplaceId;
+        return item.marketplaceId == currentSetting.marketplaceId;
       });
 
       if (alreadyInNew) {
@@ -273,19 +273,17 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       }
     }
 
-    if (needUpdate) {
-      await this.productModel
-        .findByIdAndUpdate(
-          product._id,
-          {
-            marketplaceSettings: newSettings,
-          },
-          {
-            useFindAndModify: false,
-          },
-        )
-        .exec();
-    }
+    await this.productModel
+      .findByIdAndUpdate(
+        product._id,
+        {
+          marketplaceSettings: newSettings,
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
 
     return needUpdate;
   }
