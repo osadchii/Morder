@@ -187,7 +187,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     { _id, name }: YandexMarketModel,
     skus: Map<string, number>,
   ) {
-    const start = new Date().getTime();
     const productsToUpdate = await this.productModel
       .find(
         {
@@ -200,11 +199,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         },
       )
       .exec();
-    const end = new Date().getTime();
-
-    this.logger.warn(
-      `Getting products to update Yandex.Market sku elapsed: ${end - start} ms`,
-    );
 
     this.logger.log(
       `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
@@ -261,6 +255,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
       if (alreadyInNew) {
         needUpdate = true;
+        this.logger.log(`SKU: ${identifier}. Zero branch`);
         continue;
       }
 
@@ -272,11 +267,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         newSettings.push({
           ...currentSetting,
         });
+        this.logger.log(`SKU: ${identifier}. First branch`);
       } else {
         newSettings.push({
           ...currentSetting,
           identifier: identifier,
         });
+        this.logger.log(`SKU: ${identifier}. Second branch`);
         needUpdate = true;
       }
     }
