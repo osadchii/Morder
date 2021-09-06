@@ -51,6 +51,8 @@ export class YandexMarketSkuUpdater {
       `Received ${products.length} products to update Yandex.Market SKUs for ${setting.name}`,
     );
 
+    let updated = 0;
+
     for (const product of products) {
       const { articul } = product;
 
@@ -62,20 +64,25 @@ export class YandexMarketSkuUpdater {
       }
 
       const sku = yandexSkus.get(articul).toString();
-      await this.setYandexMarketSku(product, setting, sku);
+      const saved = await this.setYandexMarketSku(product, setting, sku);
+
+      if (saved) {
+        updated++;
+      }
     }
+
+    this.logger.log(`Updated ${updated} SKUs in products for ${setting.name}`);
   }
 
   private async setYandexMarketSku(
     product: ProductModel,
     setting: YandexMarketModel,
     yandexSku: string,
-  ) {
+  ): Promise<boolean> {
     const settingId = setting._id.toHexString();
 
     let hasSet = false;
     let needSave = false;
-    let branch = 0;
 
     if (!product.marketplaceSettings) {
       product.marketplaceSettings = [];
@@ -93,8 +100,6 @@ export class YandexMarketSkuUpdater {
         if (!skuAlreadySet) {
           marketplaceSetting.identifier = yandexSku;
           needSave = true;
-
-          branch = 1;
         } else {
           hasSet = true;
         }
@@ -109,10 +114,7 @@ export class YandexMarketSkuUpdater {
         identifier: yandexSku,
       });
 
-      hasSet = true;
       needSave = true;
-
-      branch = 2;
     }
 
     if (needSave) {
@@ -127,14 +129,9 @@ export class YandexMarketSkuUpdater {
           },
         )
         .exec();
-      this.logger.log(
-        `Updated ${product.articul}. The identifier ${
-          hasSet
-            ? `was set in branch ${branch}. Setting id: ${settingId}`
-            : "wasn't set"
-        }`,
-      );
     }
+
+    return needSave;
   }
 
   private async productsByArticuls(articuls: string[]) {
