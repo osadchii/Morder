@@ -223,7 +223,7 @@ export class YandexMarketIntegration {
           result.nextPageToken = paging.nextPageToken;
         }
         offerMappingEntries.forEach((item) => {
-          if (!item.mapping) {
+          if (!item.mapping || item.mapping.marketSku) {
             return;
           }
           result.items.set(item.offer.shopSku, item.mapping.marketSku);
