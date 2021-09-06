@@ -247,7 +247,10 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       let alreadyInNew = false;
 
       for (const newSetting of newSettings) {
-        if (newSetting.marketplaceId == currentSetting.marketplaceId) {
+        if (
+          newSetting.marketplaceId.toHexString() ==
+          currentSetting.marketplaceId.toHexString()
+        ) {
           alreadyInNew = true;
           break;
         }
@@ -260,9 +263,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       }
 
       if (
-        (currentSetting.marketplaceId == marketplaceId &&
+        (currentSetting.marketplaceId.toHexString() ==
+          marketplaceId.toHexString() &&
           currentSetting.identifier == identifier) ||
-        currentSetting.marketplaceId != marketplaceId
+        currentSetting.marketplaceId.toHexString() !=
+          marketplaceId.toHexString()
       ) {
         newSettings.push({
           ...currentSetting,
