@@ -210,8 +210,11 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     let updated = 0;
 
     for (const product of productsToUpdate) {
-      const articul = product.articul.trim();
-      const sku = skus.get(articul);
+      const sku = skus.get(product.articul);
+      if (typeof sku === 'undefined') {
+        this.logger.log(`Sku for ${product.articul} not found`);
+        continue;
+      }
       try {
         const result = await this.setYandexMarketSku(product, _id, sku);
         if (result) {
@@ -254,9 +257,9 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       }
 
       if (
-        (currentSetting.marketplaceId === marketplaceId &&
-          currentSetting.identifier === identifier) ||
-        currentSetting.marketplaceId !== marketplaceId
+        (currentSetting.marketplaceId == marketplaceId &&
+          currentSetting.identifier == identifier) ||
+        currentSetting.marketplaceId != marketplaceId
       ) {
         newSettings.push({
           ...currentSetting,
