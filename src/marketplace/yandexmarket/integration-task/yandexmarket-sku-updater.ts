@@ -51,7 +51,6 @@ export class YandexMarketSkuUpdater {
       `Received ${products.length} products to update Yandex.Market SKUs for ${setting.name}`,
     );
 
-    let updated = 0;
     for (const product of products) {
       const { articul } = product;
 
@@ -64,9 +63,6 @@ export class YandexMarketSkuUpdater {
 
       const sku = yandexSkus.get(articul).toString();
       await this.setYandexMarketSku(product, setting, sku);
-      if (updated++ > 5) {
-        return;
-      }
     }
   }
 
@@ -88,24 +84,19 @@ export class YandexMarketSkuUpdater {
     for (const marketplaceSetting of product.marketplaceSettings) {
       const marketplaceId = marketplaceSetting.marketplaceId.toHexString();
       const isDesired = marketplaceId == settingId;
-      this.logger.log(
-        `${marketplaceId} == ${settingId} = ${isDesired} (isDesired)`,
-      );
 
       if (isDesired) {
         const skuAlreadySet =
           marketplaceSetting.identifier &&
           marketplaceSetting.identifier == yandexSku;
-        this.logger.log(
-          `${marketplaceSetting.identifier} && ${marketplaceSetting.identifier} == ${yandexSku} = ${skuAlreadySet} (skuAlreadySet)`,
-        );
 
         if (!skuAlreadySet) {
           marketplaceSetting.identifier = yandexSku;
           needSave = true;
-          hasSet = true;
 
           branch = 1;
+        } else {
+          hasSet = true;
         }
       }
     }
