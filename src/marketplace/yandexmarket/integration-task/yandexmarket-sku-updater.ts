@@ -20,6 +20,7 @@ export class YandexMarketSkuUpdater {
     for (const setting of settings) {
       this.logger.log(`Start updating ${setting.name} SKUs`);
       await this.updateYandexMarketSkusBySetting(setting);
+      this.logger.log(`End updating ${setting.name} SKUs`);
     }
   }
 
@@ -82,12 +83,12 @@ export class YandexMarketSkuUpdater {
 
     for (const marketplaceSetting of product.marketplaceSettings) {
       const marketplaceId = marketplaceSetting.marketplaceId.toHexString();
-      const isDesired = marketplaceId === settingId;
+      const isDesired = marketplaceId == settingId;
 
       if (isDesired) {
         const skuAlreadySet =
           marketplaceSetting.identifier &&
-          marketplaceSetting.identifier === yandexSku;
+          marketplaceSetting.identifier == yandexSku;
 
         if (!skuAlreadySet) {
           marketplaceSetting.identifier = yandexSku;
