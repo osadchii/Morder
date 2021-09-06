@@ -4,10 +4,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { ModelType } from '@typegoose/typegoose/lib/types';
 import { CompanyModel } from '../../company/company.model';
 import { CategoryModel } from '../../category/category.model';
-import {
-  ProductMarketplaceSettings,
-  ProductModel,
-} from '../../product/product.model';
+import { ProductModel } from '../../product/product.model';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
@@ -15,7 +12,7 @@ import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 import { UpdatedPrice } from './integration-model/yandexmarket-updated-price.model';
-import { Types } from 'mongoose';
+import { YandexMarketSkuUpdater } from './integration-task/yandexmarket-sku-updater';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -40,25 +37,12 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(60000)
   async updateYandexMarketSkus() {
-    const settings = await this.settingsToUpdateMarketSkus();
-
-    this.logger.log(
-      `Got ${settings.length} yandex.market settings to update market skus`,
+    const updater = new YandexMarketSkuUpdater(
+      this.marketplaceModel,
+      this.productModel,
+      this.httpService,
     );
-
-    for (const setting of settings) {
-      this.logger.log(`Save ${setting.name} last update market skus`);
-      await this.setLastUpdateMarketSkus(setting);
-
-      this.logger.log(`Start ${setting.name} yandex.market getting skus`);
-
-      const service = new YandexMarketIntegration(setting, this.httpService);
-      const map = await service.getYandexMarketSkus();
-
-      this.logger.log(`Saving ${map.size} yandex.market skus`);
-      await this.setYandexMarketSkus(setting, map);
-      this.logger.log(`Updated all yandex.market skus`);
-    }
+    await updater.updateYandexMarketSkus();
   }
 
   @Interval(60000)
@@ -183,138 +167,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
-  private async setYandexMarketSkus(
-    { _id, name }: YandexMarketModel,
-    skus: Map<string, number>,
-  ) {
-    const productsToUpdate = await this.productModel
-      .find(
-        {
-          articul: { $in: [...skus.keys()] },
-        },
-        {
-          _id: 1,
-          articul: 1,
-          marketplaceSettings: 1,
-        },
-      )
-      .exec();
-
-    this.logger.log(
-      `Need to update ${productsToUpdate.length} yandex.market skus in products for ${name}`,
-    );
-    let errors = 0;
-    let updated = 0;
-
-    for (const product of productsToUpdate) {
-      const sku = skus.get(product.articul);
-      if (typeof sku === 'undefined') {
-        this.logger.log(`Sku for ${product.articul} not found`);
-        continue;
-      }
-      try {
-        const result = await this.setYandexMarketSku(product, _id, sku);
-        if (result) {
-          updated++;
-        }
-      } catch (error) {
-        this.logger.error(
-          `Error while saving yandex market sku for ${product.articul} with identifier: ${sku}.\n${error.stack}`,
-        );
-        errors++;
-      }
-    }
-
-    this.logger.log(`Errors while saving ym skus: ${errors}`);
-    this.logger.log(`Updated ym skus: ${updated}`);
-  }
-
-  private async setYandexMarketSku(
-    product: ProductModel,
-    marketplaceId: Types.ObjectId,
-    sku: number,
-  ): Promise<boolean> {
-    if (!product.marketplaceSettings) {
-      product.marketplaceSettings = [];
-    }
-
-    const { marketplaceSettings } = product;
-    const newSettings: ProductMarketplaceSettings[] = [];
-    const mId = marketplaceId.toHexString();
-    const identifier = sku.toString();
-    let needUpdate = false;
-
-    for (const currentSetting of marketplaceSettings) {
-      let alreadyInNew = false;
-
-      for (const newSetting of newSettings) {
-        if (
-          newSetting.marketplaceId.toHexString() ==
-          currentSetting.marketplaceId.toHexString()
-        ) {
-          alreadyInNew = true;
-          break;
-        }
-      }
-
-      if (alreadyInNew) {
-        needUpdate = true;
-        this.logger.log(`SKU: ${identifier}. Zero branch`);
-        continue;
-      }
-
-      if (
-        (currentSetting.marketplaceId.toHexString() == mId &&
-          currentSetting.identifier == identifier) ||
-        currentSetting.marketplaceId.toHexString() != mId
-      ) {
-        newSettings.push({
-          ...currentSetting,
-        });
-        this.logger.log(
-          `SKU: ${identifier}. First branch.
-          \nCurrent MP ID: ${currentSetting.marketplaceId}. MP ID: ${mId}
-          \nCurrent ID: ${currentSetting.identifier}. ID: ${identifier}`,
-        );
-      } else {
-        newSettings.push({
-          ...currentSetting,
-          identifier: identifier,
-        });
-        this.logger.log(`SKU: ${identifier}. Second branch`);
-        needUpdate = true;
-      }
-    }
-
-    await this.productModel
-      .findByIdAndUpdate(
-        product._id,
-        {
-          marketplaceSettings: newSettings,
-        },
-        {
-          useFindAndModify: false,
-        },
-      )
-      .exec();
-
-    return needUpdate;
-  }
-
-  private async setLastUpdateMarketSkus({ _id }: YandexMarketModel) {
-    return this.marketplaceModel
-      .findByIdAndUpdate(
-        _id,
-        {
-          lastUpdateMarketSkus: new Date(),
-        },
-        {
-          useFindAndModify: false,
-        },
-      )
-      .exec();
-  }
-
   private async setLastUpdatePrices({ _id }: YandexMarketModel, date: Date) {
     return this.marketplaceModel
       .findByIdAndUpdate(
@@ -327,34 +179,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         },
       )
       .exec();
-  }
-
-  private async settingsToUpdateMarketSkus() {
-    const settings = await this.marketplaceModel
-      .find({
-        active: true,
-        updateMarketSkus: true,
-      })
-      .exec();
-
-    const result: YandexMarketModel[] = [];
-
-    const currentDate = new Date();
-
-    settings.forEach((item) => {
-      if (item.lastUpdateMarketSkus) {
-        const differenceTime =
-          currentDate.getTime() - item.lastUpdateMarketSkus.getTime();
-        const maximalDifferenceTime = item.updateMarketSkusInterval * 1000 * 60;
-        if (differenceTime > maximalDifferenceTime) {
-          result.push(item);
-        }
-      } else {
-        result.push(item);
-      }
-    });
-
-    return result;
   }
 
   private async settingsToUpdatePrices() {
