@@ -33,6 +33,21 @@ export class YandexMarketPriceUpdater {
     this.logger.log(
       `Received ${updatedPrices.length} updated prices for ${setting.name}`,
     );
+
+    for (const updatedPrice of updatedPrices) {
+      await this.saveUpdatedPriceToQueue(setting, updatedPrice);
+    }
+  }
+
+  private async saveUpdatedPriceToQueue(
+    setting: YandexMarketModel,
+    updatedPrice: UpdatedPrice,
+  ) {
+    return this.sendPriceQueue.create({
+      marketplaceId: setting._id,
+      marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
+      price: updatedPrice.calculatedPrice,
+    });
   }
 
   private async updatedPricesBySetting(
