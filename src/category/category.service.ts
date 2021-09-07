@@ -110,22 +110,23 @@ export class CategoryService {
     marketplaceId: string,
     value: boolean,
   ) {
-    let founded = false;
+    let found = false;
+    const marketplaceObjectId = new Types.ObjectId(marketplaceId);
     if (category.marketplaceSettings) {
       category.marketplaceSettings.forEach((item) => {
-        if (item.marketplaceId.toHexString() === marketplaceId) {
-          founded = true;
+        if (item.marketplaceId.equals(marketplaceId)) {
+          found = true;
           item.blocked = value;
         }
       });
     } else {
       category.marketplaceSettings = [];
     }
-    if (founded) {
+    if (found) {
       return;
     }
     category.marketplaceSettings.push({
-      marketplaceId: new Types.ObjectId(marketplaceId),
+      marketplaceId: marketplaceObjectId,
       blocked: value,
     });
   }
