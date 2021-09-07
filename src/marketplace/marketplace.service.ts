@@ -174,9 +174,11 @@ export abstract class MarketplaceService {
 
   static MarketplaceSettingsFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
+    const settingsIdString = settingsId.toHexString();
     if (marketplaceSettings) {
       for (const settings of marketplaceSettings) {
-        if (settings.marketplaceId == settingsId) {
+        const elementId = settings.marketplaceId.toHexString();
+        if (elementId == settingsIdString) {
           return {
             nullifyStock: settings.nullifyStock,
             ignoreRestrictions: settings.ignoreRestrictions,
