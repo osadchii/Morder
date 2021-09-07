@@ -5,6 +5,7 @@ import { ProductModel, ProductType } from '../../../product/product.model';
 import { HttpService } from '@nestjs/axios';
 import { CategoryModel } from '../../../category/category.model';
 import { MarketplaceService } from '../../marketplace.service';
+import { YandexMarketIntegration } from '../yandexmarket.integration';
 
 export class YandexMarketHiddenProductsUpdater {
   private readonly logger = new Logger(YandexMarketHiddenProductsUpdater.name);
@@ -36,8 +37,44 @@ export class YandexMarketHiddenProductsUpdater {
     ).length;
 
     this.logger.log(
-      `Received ${productsAvailability.length} products availability flag. Available: ${availableCount}`,
+      `Received ${productsAvailability.length} products availability flag. Available for ${setting.name}: ${availableCount}`,
     );
+
+    const integration = new YandexMarketIntegration(setting, this.httpService);
+    const currentlyHidden = await integration.getYandexMarketHiddenProducts();
+
+    const toHide = [];
+    const toShow = [];
+
+    for (const productAvailability of productsAvailability) {
+      const { articul, yandexMarketSku, available } = productAvailability;
+      const hidden = currentlyHidden.find(
+        (hiddenArticul) => hiddenArticul === articul,
+      );
+
+      if (hidden && available) {
+        toShow.push(yandexMarketSku);
+      }
+
+      if (!hidden && !available) {
+        toHide.push(yandexMarketSku);
+      }
+    }
+
+    this.logger.log(
+      `Need to hide ${toHide.length} products for ${setting.name}`,
+    );
+    this.logger.log(
+      `Need to show ${toShow.length} products for ${setting.name}`,
+    );
+
+    if (toShow.length > 0) {
+      await integration.showProducts(toShow);
+    }
+
+    if (toHide.length > 0) {
+      await integration.hideProducts(toHide);
+    }
   }
 
   private async productsAvailabilityBySetting(setting: YandexMarketModel) {
