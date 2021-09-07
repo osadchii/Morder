@@ -58,8 +58,13 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(90000)
   async sendPricesToYandexMarket() {
-    return;
-    await this.sendPricesFromQueue();
+    const updater = new YandexMarketPriceUpdater(
+      this.marketplaceModel,
+      this.productModel,
+      this.sendPriceQueue,
+      this.httpService,
+    );
+    await updater.sendQueuedPrices();
   }
 
   @Interval(30000)
@@ -110,50 +115,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
         await service.showProducts(toShow.slice(0, sendLimit));
       }
     }
-  }
-
-  private async sendPricesFromQueue() {
-    const settings = await this.marketplaceModel.find({
-      active: true,
-      updatePricesByApi: true,
-    });
-
-    for (const setting of settings) {
-      const prices = await this.queuedPricesBySettings(setting);
-      this.logger.log(
-        `Got ${prices.length} prices for ${setting.name} to send to yandex.market`,
-      );
-
-      if (prices.length === 0) {
-        continue;
-      }
-
-      this.logger.log(`Sending ${setting.name} prices`);
-
-      const service = new YandexMarketIntegration(setting, this.httpService);
-      await service.updatePrices(prices);
-
-      this.logger.log(`Deleting ${setting.name} prices from queue`);
-      await this.deletePricesFromSendQueue(prices);
-    }
-  }
-
-  private async deletePricesFromSendQueue(
-    prices: YandexMarketSendPriceQueueModel[],
-  ) {
-    for (const price of prices) {
-      await this.sendPriceQueue.findByIdAndDelete(price._id);
-    }
-  }
-
-  private async queuedPricesBySettings({ _id }: YandexMarketModel) {
-    return this.sendPriceQueue
-      .find({
-        marketplaceId: _id,
-      })
-      .sort({ updatedAt: 1 })
-      .limit(50)
-      .exec();
   }
 
   private async activeSettings() {

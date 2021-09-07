@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { YandexMarketSendPriceQueueModel } from '../yandexmarket.sendprice.queue.model';
 import { UpdatedPrice } from '../integration-model/yandexmarket-updated-price.model';
 import { MarketplaceService } from '../../marketplace.service';
+import { YandexMarketIntegration } from '../yandexmarket.integration';
 
 export class YandexMarketPriceUpdater {
   private readonly logger = new Logger(YandexMarketPriceUpdater.name);
@@ -27,6 +28,43 @@ export class YandexMarketPriceUpdater {
     }
   }
 
+  async sendQueuedPrices() {
+    const settings = await this.settingsToUpdatePrices();
+
+    for (const setting of settings) {
+      this.logger.log(`Start sending ${setting.name} queued prices`);
+      await this.sendQueuedPricesBySetting(setting);
+      this.logger.log(`End sending ${setting.name} queued prices`);
+    }
+  }
+
+  private async sendQueuedPricesBySetting(setting: YandexMarketModel) {
+    const prices = await this.queuedPricesBySettings(setting);
+
+    this.logger.log(
+      `Received ${prices.length} queued prices for ${setting.name}`,
+    );
+
+    if (prices.length === 0) {
+      return;
+    }
+
+    const service = new YandexMarketIntegration(setting, this.httpService);
+    await service.updatePrices(prices);
+
+    await this.deletePricesFromSendQueue(prices);
+
+    this.logger.log(`Deleted ${prices.length} for ${setting.name} from queue`);
+  }
+
+  private async deletePricesFromSendQueue(
+    prices: YandexMarketSendPriceQueueModel[],
+  ) {
+    for (const price of prices) {
+      await this.sendPriceQueue.findByIdAndDelete(price._id);
+    }
+  }
+
   private async updatePriceQueueBySetting(setting: YandexMarketModel) {
     const date = new Date();
     const updatedPrices = await this.updatedPricesBySetting(setting);
@@ -42,15 +80,14 @@ export class YandexMarketPriceUpdater {
     await this.setLastUpdatePrices(setting, date);
   }
 
-  private async saveUpdatedPriceToQueue(
-    setting: YandexMarketModel,
-    updatedPrice: UpdatedPrice,
-  ) {
-    return this.sendPriceQueue.create({
-      marketplaceId: setting._id,
-      marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
-      price: updatedPrice.calculatedPrice,
-    });
+  private async queuedPricesBySettings(setting: YandexMarketModel) {
+    return this.sendPriceQueue
+      .find({
+        marketplaceId: setting._id,
+      })
+      .sort({ updatedAt: 1 })
+      .limit(50)
+      .exec();
   }
 
   private async setLastUpdatePrices(setting: YandexMarketModel, date: Date) {
@@ -65,6 +102,17 @@ export class YandexMarketPriceUpdater {
         },
       )
       .exec();
+  }
+
+  private async saveUpdatedPriceToQueue(
+    setting: YandexMarketModel,
+    updatedPrice: UpdatedPrice,
+  ) {
+    return this.sendPriceQueue.create({
+      marketplaceId: setting._id,
+      marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
+      price: updatedPrice.calculatedPrice,
+    });
   }
 
   private async updatedPricesBySetting(
