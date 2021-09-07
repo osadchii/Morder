@@ -9,6 +9,7 @@ import { YandexMarketIntegration } from '../yandexmarket.integration';
 
 export class YandexMarketHiddenProductsUpdater {
   private readonly logger = new Logger(YandexMarketHiddenProductsUpdater.name);
+  private readonly portionSize = 200;
 
   constructor(
     private readonly marketplaceModel: ModelType<YandexMarketModel>,
@@ -69,11 +70,11 @@ export class YandexMarketHiddenProductsUpdater {
     );
 
     if (toShow.length > 0) {
-      await integration.showProducts(toShow);
+      await integration.showProducts(toShow.slice(0, this.portionSize));
     }
 
     if (toHide.length > 0) {
-      await integration.hideProducts(toHide);
+      await integration.hideProducts(toHide.slice(0, this.portionSize));
     }
   }
 
