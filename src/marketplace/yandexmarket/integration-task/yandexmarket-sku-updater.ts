@@ -18,9 +18,10 @@ export class YandexMarketSkuUpdater {
     const settings = await this.settingsToUpdateSkus();
 
     for (const setting of settings) {
-      this.logger.log(`Start updating ${setting.name} SKUs`);
+      const { name } = setting;
+      this.logger.log(`Start updating ${name} SKUs`);
       await this.updateYandexMarketSkusBySetting(setting);
-      this.logger.log(`End updating ${setting.name} SKUs`);
+      this.logger.log(`End updating ${name} SKUs`);
     }
   }
 

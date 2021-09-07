@@ -22,9 +22,10 @@ export class YandexMarketPriceUpdater {
     const settings = await this.settingsToUpdatePrices();
 
     for (const setting of settings) {
-      this.logger.log(`Start updating ${setting.name} send price queue`);
+      const { name } = setting;
+      this.logger.log(`Start updating ${name} send price queue`);
       await this.updatePriceQueueBySetting(setting);
-      this.logger.log(`End updating ${setting.name} send price queue`);
+      this.logger.log(`End updating ${name} send price queue`);
     }
   }
 
@@ -32,9 +33,10 @@ export class YandexMarketPriceUpdater {
     const settings = await this.settingsToUpdatePrices();
 
     for (const setting of settings) {
-      this.logger.log(`Start sending ${setting.name} queued prices`);
+      const { name } = setting;
+      this.logger.log(`Start sending ${name} queued prices`);
       await this.sendQueuedPricesBySetting(setting);
-      this.logger.log(`End sending ${setting.name} queued prices`);
+      this.logger.log(`End sending ${name} queued prices`);
     }
   }
 
@@ -61,7 +63,9 @@ export class YandexMarketPriceUpdater {
       const { response } = error;
       const { status, statusText, data } = response;
       this.logger.error(
-        `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}.\nData: ${data.toString()}`,
+        `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}.\nData: ${JSON.stringify(
+          data,
+        )}`,
       );
     }
   }
