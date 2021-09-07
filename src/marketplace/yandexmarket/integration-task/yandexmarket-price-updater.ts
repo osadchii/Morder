@@ -51,7 +51,8 @@ export class YandexMarketPriceUpdater {
       .aggregate()
       .match({
         isDeleted: false,
-        priceUpdatedAt: { $gte: fromDate },
+        //priceUpdatedAt: { $gte: fromDate },
+        articul: '187131',
       })
       .sort({ priceUpdatedAt: 1 })
       .addFields({
