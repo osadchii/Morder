@@ -101,7 +101,10 @@ export class ProductService {
   }
 
   async createOrUpdate(dto: ProductDto) {
-    const { erpCode } = dto;
+    const { erpCode, articul, name } = dto;
+    this.logger.log(
+      `Updated product (${articul}) ${name} with code: ${erpCode}`,
+    );
     return this.productModel
       .findOneAndUpdate({ erpCode }, dto, {
         upsert: true,
@@ -117,12 +120,14 @@ export class ProductService {
   }
 
   async deleteById(id: string) {
+    this.logger.log(`Deleted product with id: ${id}`);
     return this.productModel.findByIdAndDelete(id).exec();
   }
 
   // Stock actions
 
   async updateStock({ erpCode, stock }: SetStockDto) {
+    this.logger.log(`Updated ${erpCode} stock to ${stock}`);
     return this.productModel
       .findOneAndUpdate(
         {
