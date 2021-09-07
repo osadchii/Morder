@@ -121,11 +121,25 @@ export class YandexMarketPriceUpdater {
     setting: YandexMarketModel,
     updatedPrice: UpdatedPrice,
   ) {
-    return this.sendPriceQueue.create({
-      marketplaceId: setting._id,
-      marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
-      price: updatedPrice.calculatedPrice,
-    });
+    const sku = Number.parseInt(updatedPrice.yandexMarketSku);
+
+    return this.sendPriceQueue
+      .updateOne(
+        {
+          marketplaceId: setting._id,
+          marketSku: sku,
+        },
+        {
+          marketplaceId: setting._id,
+          marketSku: sku,
+          price: updatedPrice.calculatedPrice,
+        },
+        {
+          upsert: true,
+          useFindAndModify: false,
+        },
+      )
+      .exec();
   }
 
   private async updatedPricesBySetting(
