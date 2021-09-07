@@ -9,10 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
 import { Interval } from '@nestjs/schedule';
-import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 import { YandexMarketSkuUpdater } from './integration-task/yandexmarket-sku-updater';
 import { YandexMarketPriceUpdater } from './integration-task/yandexmarket-price-updater';
+import { YandexMarketHiddenProductsUpdater } from './integration-task/yandexmarket-hidden-products-updater';
 
 @Injectable()
 export class YandexMarketIntegrationService extends MarketplaceService {
@@ -69,52 +69,58 @@ export class YandexMarketIntegrationService extends MarketplaceService {
 
   @Interval(30000)
   async updateHiddenProducts() {
-    return;
-    const settings = await this.activeSettings();
-    const sendLimit = 5;
-
-    for (const setting of settings) {
-      this.logger.log(`Start updating hidden products for ${setting.name}`);
-
-      const products = await this.actualProductsHiddenFlag(setting);
-      this.logger.log(
-        `Got ${products.length} products to update hidden products for ${setting.name}`,
-      );
-      const service = new YandexMarketIntegration(setting, this.httpService);
-
-      const hiddenProducts = await service.getYandexMarketHiddenProducts();
-
-      this.logger.log(
-        `Got ${hiddenProducts.length} hidden products of ${setting.name}`,
-      );
-
-      const toHide = [];
-      const toShow = [];
-
-      products.forEach(({ yandexMarketSku, articul, available }) => {
-        const hidden = hiddenProducts.find((element) => element === articul);
-        if (hidden && available) {
-          toShow.push(yandexMarketSku);
-        }
-        if (!hidden && !available) {
-          toHide.push(yandexMarketSku);
-        }
-      });
-      this.logger.log(
-        `Need to hide ${toHide.length} products for ${setting.name}`,
-      );
-      this.logger.log(
-        `Need to show ${toShow.length} products for ${setting.name}`,
-      );
-
-      if (toHide.length > 0) {
-        await service.hideProducts(toHide.slice(0, sendLimit));
-      }
-
-      if (toShow.length > 0) {
-        await service.showProducts(toShow.slice(0, sendLimit));
-      }
-    }
+    const updater = new YandexMarketHiddenProductsUpdater(
+      this.marketplaceModel,
+      this.categoryModel,
+      this.productModel,
+      this.httpService,
+    );
+    await updater.updateHiddenProducts();
+    // const settings = await this.activeSettings();
+    // const sendLimit = 5;
+    //
+    // for (const setting of settings) {
+    //   this.logger.log(`Start updating hidden products for ${setting.name}`);
+    //
+    //   const products = await this.actualProductsHiddenFlag(setting);
+    //   this.logger.log(
+    //     `Got ${products.length} products to update hidden products for ${setting.name}`,
+    //   );
+    //   const service = new YandexMarketIntegration(setting, this.httpService);
+    //
+    //   const hiddenProducts = await service.getYandexMarketHiddenProducts();
+    //
+    //   this.logger.log(
+    //     `Got ${hiddenProducts.length} hidden products of ${setting.name}`,
+    //   );
+    //
+    //   const toHide = [];
+    //   const toShow = [];
+    //
+    //   products.forEach(({ yandexMarketSku, articul, available }) => {
+    //     const hidden = hiddenProducts.find((element) => element === articul);
+    //     if (hidden && available) {
+    //       toShow.push(yandexMarketSku);
+    //     }
+    //     if (!hidden && !available) {
+    //       toHide.push(yandexMarketSku);
+    //     }
+    //   });
+    //   this.logger.log(
+    //     `Need to hide ${toHide.length} products for ${setting.name}`,
+    //   );
+    //   this.logger.log(
+    //     `Need to show ${toShow.length} products for ${setting.name}`,
+    //   );
+    //
+    //   if (toHide.length > 0) {
+    //     await service.hideProducts(toHide.slice(0, sendLimit));
+    //   }
+    //
+    //   if (toShow.length > 0) {
+    //     await service.showProducts(toShow.slice(0, sendLimit));
+    //   }
+    // }
   }
 
   private async activeSettings() {
