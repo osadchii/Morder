@@ -53,7 +53,9 @@ export class YandexMarketPriceUpdater {
         isDeleted: false,
         priceUpdatedAt: { $gte: fromDate },
         marketplaceSettings: {
-          marketplaceId: _id,
+          $elemMatch: {
+            marketplaceId: _id,
+          },
         },
       })
       .sort({ priceUpdatedAt: 1 })
