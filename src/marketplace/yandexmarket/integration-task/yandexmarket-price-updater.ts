@@ -50,11 +50,20 @@ export class YandexMarketPriceUpdater {
     }
 
     const service = new YandexMarketIntegration(setting, this.httpService);
-    await service.updatePrices(prices);
 
-    await this.deletePricesFromSendQueue(prices);
-
-    this.logger.log(`Deleted ${prices.length} for ${setting.name} from queue`);
+    try {
+      await service.updatePrices(prices);
+      await this.deletePricesFromSendQueue(prices);
+      this.logger.log(
+        `Deleted ${prices.length} for ${setting.name} from queue`,
+      );
+    } catch (error) {
+      const { response } = error;
+      const { status, statusText, data } = response;
+      this.logger.error(
+        `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}.\nData: ${data.toString()}`,
+      );
+    }
   }
 
   private async deletePricesFromSendQueue(

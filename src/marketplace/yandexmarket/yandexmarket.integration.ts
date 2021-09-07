@@ -137,20 +137,13 @@ export class YandexMarketIntegration {
       }),
     };
 
-    await this.httpService
+    return this.httpService
       .post(url, body, {
         headers: {
           ...this.authorizationHeader(),
         },
       })
-      .toPromise()
-      .catch((error) => {
-        const { response } = error;
-        const { status, statusText } = response;
-        this.logger.error(
-          `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}`,
-        );
-      });
+      .toPromise();
   }
 
   private async getYandexMarketHiddenProductsPage(nextPageToken?: string) {
