@@ -54,7 +54,7 @@ export abstract class MarketplaceService {
       .addFields({
         blocked: {
           $function: {
-            body: MarketplaceService.BlockerCategoryFunctionText(),
+            body: MarketplaceService.BlockedCategoryFunctionText(),
             args: ['$marketplaceSettings', _id],
             lang: 'js',
           },
@@ -142,7 +142,7 @@ export abstract class MarketplaceService {
   }`;
   }
 
-  static BlockerCategoryFunctionText(): string {
+  static BlockedCategoryFunctionText(): string {
     return `function(marketplaceSettings, settingsId) {
     if (!marketplaceSettings) {
       return false;
@@ -176,7 +176,8 @@ export abstract class MarketplaceService {
     return `function(marketplaceSettings, settingsId) {
     if (marketplaceSettings) {
       for (const settings of marketplaceSettings) {
-        if (settings.marketplaceId == settingsId) {
+        const id = settings.marketplaceId.toHexString();
+        if (id == settingsId) {
           return {
             nullifyStock: settings.nullifyStock,
             ignoreRestrictions: settings.ignoreRestrictions,
