@@ -70,9 +70,6 @@ export class YandexMarketPriceUpdater {
           },
         },
       })
-      .match({
-        'concreteMarketplaceSettings.identifier': { $exists: true },
-      })
       .addFields({
         yandexMarketSku: '$concreteMarketplaceSettings.identifier',
       })
