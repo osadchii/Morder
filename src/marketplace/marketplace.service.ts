@@ -148,7 +148,7 @@ export abstract class MarketplaceService {
       return false;
     }
     for (const settings of marketplaceSettings) {
-      if (settings.marketplaceId == settingsId
+      if (settings.marketplaceId.equals(settingsId)
         && settings.blocked) {
         return true;
       }
