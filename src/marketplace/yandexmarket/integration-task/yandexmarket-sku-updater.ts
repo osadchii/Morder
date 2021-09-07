@@ -79,8 +79,6 @@ export class YandexMarketSkuUpdater {
     setting: YandexMarketModel,
     yandexSku: string,
   ): Promise<boolean> {
-    const settingId = setting._id.toHexString();
-
     let hasSet = false;
     let needSave = false;
 
@@ -89,8 +87,7 @@ export class YandexMarketSkuUpdater {
     }
 
     for (const marketplaceSetting of product.marketplaceSettings) {
-      const marketplaceId = marketplaceSetting.marketplaceId.toHexString();
-      const isDesired = marketplaceId == settingId;
+      const isDesired = marketplaceSetting.marketplaceId.equals(setting._id);
 
       if (isDesired) {
         const skuAlreadySet =

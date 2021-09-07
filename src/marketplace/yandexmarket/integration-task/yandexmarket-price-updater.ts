@@ -33,7 +33,6 @@ export class YandexMarketPriceUpdater {
     this.logger.log(
       `Received ${updatedPrices.length} updated prices for ${setting.name}`,
     );
-    console.dir(updatedPrices);
   }
 
   private async updatedPricesBySetting(
@@ -77,6 +76,9 @@ export class YandexMarketPriceUpdater {
       })
       .addFields({
         yandexMarketSku: '$concreteMarketplaceSettings.identifier',
+      })
+      .match({
+        yandexMarketSku: { $exists: true },
       })
       .project({
         yandexMarketSku: 1,
