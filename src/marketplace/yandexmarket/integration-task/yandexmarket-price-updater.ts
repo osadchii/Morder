@@ -28,6 +28,7 @@ export class YandexMarketPriceUpdater {
   }
 
   private async updatePriceQueueBySetting(setting: YandexMarketModel) {
+    const date = new Date();
     const updatedPrices = await this.updatedPricesBySetting(setting);
 
     this.logger.log(
@@ -37,6 +38,8 @@ export class YandexMarketPriceUpdater {
     for (const updatedPrice of updatedPrices) {
       await this.saveUpdatedPriceToQueue(setting, updatedPrice);
     }
+
+    await this.setLastUpdatePrices(setting, date);
   }
 
   private async saveUpdatedPriceToQueue(
@@ -48,6 +51,20 @@ export class YandexMarketPriceUpdater {
       marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
       price: updatedPrice.calculatedPrice,
     });
+  }
+
+  private async setLastUpdatePrices(setting: YandexMarketModel, date: Date) {
+    return this.marketplaceModel
+      .findByIdAndUpdate(
+        setting._id,
+        {
+          lastPriceUpdate: date,
+        },
+        {
+          useFindAndModify: false,
+        },
+      )
+      .exec();
   }
 
   private async updatedPricesBySetting(

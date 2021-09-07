@@ -11,7 +11,6 @@ import { YandexMarketModel } from './yandexmarket.model';
 import { Interval } from '@nestjs/schedule';
 import { YandexMarketIntegration } from './yandexmarket.integration';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
-import { UpdatedPrice } from './integration-model/yandexmarket-updated-price.model';
 import { YandexMarketSkuUpdater } from './integration-task/yandexmarket-sku-updater';
 import { YandexMarketPriceUpdater } from './integration-task/yandexmarket-price-updater';
 
@@ -55,24 +54,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       this.httpService,
     );
     await updater.updatePriceQueues();
-    // return;
-    // const settings = await this.settingsToUpdatePrices();
-    //
-    // this.logger.log(
-    //   `Got ${settings.length} yandex.market settings to update prices`,
-    // );
-    //
-    // for (const setting of settings) {
-    //   const now = new Date();
-    //   const prices = await this.updatedYandexMarketPrices(setting);
-    //
-    //   this.logger.log(
-    //     `Got ${prices.length} prices to update in ${setting.name}`,
-    //   );
-    //
-    //   await this.saveUpdatedPricesToQueue(setting, prices);
-    //   await this.setLastUpdatePrices(setting, now);
-    // }
   }
 
   @Interval(90000)
@@ -175,33 +156,6 @@ export class YandexMarketIntegrationService extends MarketplaceService {
       .exec();
   }
 
-  private async setLastUpdatePrices({ _id }: YandexMarketModel, date: Date) {
-    return this.marketplaceModel
-      .findByIdAndUpdate(
-        _id,
-        {
-          lastPriceUpdate: date,
-        },
-        {
-          useFindAndModify: false,
-        },
-      )
-      .exec();
-  }
-
-  private async settingsToUpdatePrices() {
-    return this.marketplaceModel
-      .find({
-        active: true,
-        updatePricesByApi: true,
-        $or: [
-          { lastPriceUpdate: { $lt: new Date() } },
-          { lastPriceUpdate: null },
-        ],
-      })
-      .exec();
-  }
-
   private async activeSettings() {
     return this.marketplaceModel
       .find({
@@ -298,65 +252,5 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     });
 
     return result;
-  }
-
-  private async updatedYandexMarketPrices(
-    settings: YandexMarketModel,
-  ): Promise<UpdatedPrice[]> {
-    const { specialPriceName, _id } = settings;
-    let fromDate = new Date(2020, 1, 1);
-
-    if (settings.lastPriceUpdate) {
-      fromDate = settings.lastPriceUpdate;
-    }
-
-    return this.productModel
-      .aggregate()
-      .match({
-        isDeleted: false,
-        priceUpdatedAt: { $gte: fromDate },
-      })
-      .sort({ priceUpdatedAt: 1 })
-      .addFields({
-        calculatedPrice: {
-          $function: {
-            body: MarketplaceService.CalculatedPriceFunctionText(),
-            args: ['$specialPrices', specialPriceName, '$price'],
-            lang: 'js',
-          },
-        },
-        concreteMarketplaceSettings: {
-          $function: {
-            body: MarketplaceService.MarketplaceSettingsFunctionText(),
-            args: ['$marketplaceSettings', _id],
-            lang: 'js',
-          },
-        },
-      })
-      .addFields({
-        yandexMarketSku: '$concreteMarketplaceSettings.identifier',
-      })
-      .match({
-        yandexMarketSku: { $exists: true },
-      })
-      .project({
-        yandexMarketSku: 1,
-        calculatedPrice: 1,
-        priceUpdatedAt: 1,
-      })
-      .exec();
-  }
-
-  private async saveUpdatedPricesToQueue(
-    { _id }: YandexMarketModel,
-    updatedPrices: UpdatedPrice[],
-  ) {
-    for (const updatedPrice of updatedPrices) {
-      await this.sendPriceQueue.create({
-        marketplaceId: _id,
-        marketSku: Number.parseInt(updatedPrice.yandexMarketSku),
-        price: updatedPrice.calculatedPrice,
-      });
-    }
   }
 }
