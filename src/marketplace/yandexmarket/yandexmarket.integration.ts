@@ -70,9 +70,6 @@ export class YandexMarketIntegration {
         };
       }),
     };
-    this.logger.log(
-      `Starting sending hide products request.\nUrl: ${url}\nHidden offers in body: ${body.hiddenOffers.length}`,
-    );
 
     await this.httpService
       .post(url, body, {
