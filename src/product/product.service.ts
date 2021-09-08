@@ -19,6 +19,8 @@ import {
 import { createReadStream } from 'fs';
 import { ProductImageHelper } from './product.image';
 import { GetProductsDto } from './dto/get-products.dto';
+import { SetMarketplaceSettingsProductDto } from './dto/setmarketplacesettings.product.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ProductService {
@@ -315,6 +317,40 @@ export class ProductService {
     }
 
     return createReadStream(fullFileName);
+  }
+
+  // Marketplace settings
+
+  async setMarketplaceSettings(dto: SetMarketplaceSettingsProductDto) {
+    const product = await this.productModel
+      .findOne({
+        erpCode: dto.erpCode,
+      })
+      .exec();
+
+    let updated = false;
+
+    if (!product.marketplaceSettings) {
+      product.marketplaceSettings = [];
+    }
+
+    for (const setting of product.marketplaceSettings) {
+      if (setting.marketplaceId.equals(dto.marketplaceId)) {
+        setting.nullifyStock = dto.nullifyStock ?? false;
+        setting.ignoreRestrictions = dto.ignoreRestrictions ?? false;
+        updated = true;
+      }
+    }
+
+    if (!updated) {
+      product.marketplaceSettings.push({
+        marketplaceId: new Types.ObjectId(dto.marketplaceId),
+        nullifyStock: dto.nullifyStock ?? false,
+        ignoreRestrictions: dto.ignoreRestrictions ?? false,
+      });
+    }
+
+    await product.save();
   }
 
   // Error handlers

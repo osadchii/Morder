@@ -27,6 +27,7 @@ import { SetPriceDto } from './dto/set-price.dto';
 import { SetSpecialPriceDto } from './dto/set-special-price.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../infrastructure/guards/jwt.guard';
+import { SetMarketplaceSettingsProductDto } from './dto/setmarketplacesettings.product.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('product')
@@ -138,6 +139,8 @@ export class ProductController {
     return updatedProduct;
   }
 
+  // IMAGES
+
   @Post('image/:erpCode')
   @UseInterceptors(FileInterceptor('image'))
   @HttpCode(200)
@@ -155,5 +158,17 @@ export class ProductController {
   @Get('image/:erpCode')
   async getImage(@Param('erpCode') erpCode: string, @Res() response) {
     return (await this.productService.getImage(erpCode)).pipe(response);
+  }
+
+  // MARKETPLACE SETTINGS
+  @Post('/setMarketplaceSettings')
+  @HttpCode(200)
+  async setMarketplaceSettings(dto: SetMarketplaceSettingsProductDto) {
+    try {
+      await this.productService.setMarketplaceSettings(dto);
+    } catch (error) {
+      console.error(error.toString());
+      return new HttpException(error.toString(), 500);
+    }
   }
 }
