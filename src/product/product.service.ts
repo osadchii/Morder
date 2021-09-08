@@ -336,8 +336,9 @@ export class ProductService {
 
     for (const setting of product.marketplaceSettings) {
       if (setting.marketplaceId.equals(dto.marketplaceId)) {
-        setting.nullifyStock = dto.nullifyStock ?? false;
-        setting.ignoreRestrictions = dto.ignoreRestrictions ?? false;
+        setting.nullifyStock = dto.nullifyStock ?? setting.nullifyStock;
+        setting.ignoreRestrictions =
+          dto.ignoreRestrictions ?? setting.ignoreRestrictions;
         updated = true;
       }
     }
