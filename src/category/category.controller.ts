@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -21,6 +22,8 @@ import { SetMarketplaceBlockingCategoryDto } from './dto/setmarketplacesettings.
 @UseGuards(JwtAuthGuard)
 @Controller('category')
 export class CategoryController {
+  private readonly logger = new Logger(CategoryController.name);
+
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post('post')
@@ -55,7 +58,7 @@ export class CategoryController {
     try {
       await this.categoryService.setMarketplaceSettings(dto);
     } catch (error) {
-      console.log(error);
+      this.logger.error(error.toString());
       throw new HttpException(error.toString(), 500);
     }
   }

@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -32,6 +33,8 @@ import { SetMarketplaceSettingsProductDto } from './dto/setmarketplacesettings.p
 @UseGuards(JwtAuthGuard)
 @Controller('product')
 export class ProductController {
+  private readonly logger = new Logger(ProductController.name);
+
   constructor(
     private readonly productService: ProductService,
     private readonly categoryService: CategoryService,
@@ -167,7 +170,7 @@ export class ProductController {
     try {
       await this.productService.setMarketplaceSettings(dto);
     } catch (error) {
-      console.error(error.toString());
+      this.logger.error(error.toString());
       return new HttpException(error.toString(), 500);
     }
   }
