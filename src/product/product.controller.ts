@@ -163,7 +163,7 @@ export class ProductController {
   // MARKETPLACE SETTINGS
   @Post('/setMarketplaceSettings')
   @HttpCode(200)
-  async setMarketplaceSettings(dto: SetMarketplaceSettingsProductDto) {
+  async setMarketplaceSettings(@Body() dto: SetMarketplaceSettingsProductDto) {
     try {
       await this.productService.setMarketplaceSettings(dto);
     } catch (error) {
