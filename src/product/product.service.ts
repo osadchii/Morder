@@ -285,7 +285,7 @@ export class ProductService {
       .exec()) as { priceNames: string[] }[];
 
     if (priceNames.length > 0) {
-      return priceNames[0].priceNames;
+      return priceNames[0].priceNames.sort((a, b) => b.localeCompare(a));
     }
 
     return [] as string[];
