@@ -42,7 +42,20 @@ export class YandexMarketHiddenProductsUpdater {
     );
 
     const integration = new YandexMarketIntegration(setting, this.httpService);
-    const currentlyHidden = await integration.getYandexMarketHiddenProducts();
+    let currentlyHidden = [];
+
+    try {
+      currentlyHidden = await integration.getYandexMarketHiddenProducts();
+    } catch (error) {
+      const { response } = error;
+      const { status, statusText } = response;
+      this.logger.error(
+        `Can't get hidden products from yandex.market.
+        \nStatus: ${status}
+        \nStatus text: ${statusText}`,
+      );
+      return;
+    }
 
     const toHide = [];
     const toShow = [];

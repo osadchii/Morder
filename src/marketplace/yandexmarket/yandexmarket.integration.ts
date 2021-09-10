@@ -172,13 +172,6 @@ export class YandexMarketIntegration {
         hiddenOffers.forEach((item) => {
           result.items.push(item.offerId);
         });
-      })
-      .catch((error) => {
-        const { response } = error;
-        const { status, statusText } = response;
-        this.logger.error(
-          `Can't get hidden products from yandex.market.\nStatus: ${status}\nStatus text: ${statusText}`,
-        );
       });
 
     return result;
