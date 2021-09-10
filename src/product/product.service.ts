@@ -265,8 +265,8 @@ export class ProductService {
       .exec();
   }
 
-  async getSpecialPriceNames(): Promise<string> {
-    const priceNames = await this.productModel
+  async getSpecialPriceNames(): Promise<string[]> {
+    const priceNames = (await this.productModel
       .aggregate()
       .match({
         specialPrices: { $exists: true },
@@ -282,9 +282,13 @@ export class ProductService {
         _id: null,
         priceNames: { $addToSet: '$priceName' },
       })
-      .exec();
+      .exec()) as { priceNames: string[] }[];
 
-    return priceNames.priceNames;
+    if (priceNames.length > 0) {
+      return priceNames[0].priceNames;
+    }
+
+    return [] as string[];
   }
 
   // Images
