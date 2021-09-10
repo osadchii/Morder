@@ -265,6 +265,28 @@ export class ProductService {
       .exec();
   }
 
+  async getSpecialPriceNames(): Promise<string> {
+    const priceNames = await this.productModel
+      .aggregate()
+      .match({
+        specialPrices: { $exists: true },
+      })
+      .unwind('$specialPrices')
+      .addFields({
+        priceName: '$specialPrices.priceName',
+      })
+      .project({
+        priceName: 1,
+      })
+      .group({
+        _id: null,
+        priceNames: { $addToSet: '$priceName' },
+      })
+      .exec();
+
+    return priceNames.priceNames;
+  }
+
   // Images
 
   async uploadImage(erpCode: string, file: Express.Multer.File) {

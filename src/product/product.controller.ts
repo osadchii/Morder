@@ -142,6 +142,11 @@ export class ProductController {
     return updatedProduct;
   }
 
+  @Get('getSpecialPriceNames')
+  async getSpecialPriceNames() {
+    return this.productService.getSpecialPriceNames();
+  }
+
   // IMAGES
 
   @Post('image/:erpCode')
