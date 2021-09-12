@@ -58,15 +58,11 @@ export class YandexMarketSkuUpdater {
 
     for (const product of products) {
       const { articul } = product;
+      let sku = null;
 
-      if (!yandexSkus.has(articul)) {
-        this.logger.warn(
-          `Can't find Yandex.Market SKU for articul ${articul} for ${setting.name}`,
-        );
-        continue;
+      if (yandexSkus.has(articul)) {
+        sku = yandexSkus.get(articul).toString();
       }
-
-      const sku = yandexSkus.get(articul).toString();
       const saved = await this.setYandexMarketSku(product, setting, sku);
 
       if (saved) {
@@ -80,7 +76,7 @@ export class YandexMarketSkuUpdater {
   private async setYandexMarketSku(
     product: ProductModel,
     setting: YandexMarketModel,
-    yandexSku: string,
+    yandexSku: string | null,
   ): Promise<boolean> {
     let hasSet = false;
     let needSave = false;
@@ -106,7 +102,7 @@ export class YandexMarketSkuUpdater {
       }
     }
 
-    if (!hasSet) {
+    if (!hasSet && yandexSku) {
       product.marketplaceSettings.push({
         marketplaceId: setting._id,
         ignoreRestrictions: false,
