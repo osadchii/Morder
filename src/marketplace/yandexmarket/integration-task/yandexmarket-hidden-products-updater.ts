@@ -48,11 +48,12 @@ export class YandexMarketHiddenProductsUpdater {
       currentlyHidden = await integration.getYandexMarketHiddenProducts();
     } catch (error) {
       const { response } = error;
-      const { status, statusText } = response;
+      const { status, statusText, data } = response;
       this.logger.error(
         `Can't get hidden products from yandex.market.
         \nStatus: ${status}
-        \nStatus text: ${statusText}`,
+        \nStatus text: ${statusText}
+        \nData: ${JSON.stringify(data)}`,
       );
       return;
     }
