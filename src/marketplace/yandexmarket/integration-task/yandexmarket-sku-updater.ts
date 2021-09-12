@@ -46,7 +46,9 @@ export class YandexMarketSkuUpdater {
     setting: YandexMarketModel,
     yandexSkus: Map<string, number>,
   ) {
-    const products = await this.productsByArticuls([...yandexSkus.keys()]);
+    const products = await this.productToUpdateSkus(setting, [
+      ...yandexSkus.keys(),
+    ]);
 
     this.logger.log(
       `Received ${products.length} products to update Yandex.Market SKUs for ${setting.name}`,
@@ -132,12 +134,27 @@ export class YandexMarketSkuUpdater {
     return needSave;
   }
 
-  private async productsByArticuls(articuls: string[]) {
+  private async productToUpdateSkus(
+    setting: YandexMarketModel,
+    articuls: string[],
+  ) {
     return this.productModel
       .find(
         {
-          articul: { $in: articuls },
-          isDeleted: false,
+          $or: [
+            {
+              articul: { $in: articuls },
+              isDeleted: false,
+            },
+            {
+              marketplaceSettings: {
+                $elemMatch: {
+                  marketplaceId: setting._id,
+                  identifier: { $exists: true },
+                },
+              },
+            },
+          ],
         },
         {
           _id: 1,
