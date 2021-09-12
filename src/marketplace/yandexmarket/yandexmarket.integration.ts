@@ -210,12 +210,6 @@ export class YandexMarketIntegration {
             result.items.set(item.offer.shopSku, item.mapping.marketSku);
           }
         });
-      })
-      .catch((error) => {
-        console.dir(error);
-        this.logger.error(
-          `Can't get yandex.market skus.\nError: ${error.toString()}`,
-        );
       });
 
     return result;

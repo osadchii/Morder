@@ -29,7 +29,21 @@ export class YandexMarketSkuUpdater {
     await this.setLastUpdateMarketSkus(setting);
 
     const integration = new YandexMarketIntegration(setting, this.httpService);
-    const yandexSkus = await integration.getYandexMarketSkus();
+    const yandexSkus = await integration
+      .getYandexMarketSkus()
+      .catch((error) => {
+        const { response } = error;
+        const { status, statusText, data } = response;
+        this.logger.error(
+          `Can't get yandex.market skus.\nStatus code: ${status}\nStatus text: ${statusText}\nData: ${JSON.stringify(
+            data,
+          )}`,
+        );
+      });
+
+    if (!yandexSkus) {
+      return;
+    }
 
     this.logger.log(
       `Received ${yandexSkus.size} Yandex.Market SKUs for ${setting.name}`,
@@ -58,7 +72,7 @@ export class YandexMarketSkuUpdater {
 
     for (const product of products) {
       const { articul } = product;
-      let sku = null;
+      let sku = undefined;
 
       if (yandexSkus.has(articul)) {
         sku = yandexSkus.get(articul).toString();
@@ -76,7 +90,7 @@ export class YandexMarketSkuUpdater {
   private async setYandexMarketSku(
     product: ProductModel,
     setting: YandexMarketModel,
-    yandexSku: string | null,
+    yandexSku?: string,
   ): Promise<boolean> {
     let hasSet = false;
     let needSave = false;
@@ -91,7 +105,7 @@ export class YandexMarketSkuUpdater {
       if (isDesired) {
         const skuAlreadySet =
           marketplaceSetting.identifier &&
-          marketplaceSetting.identifier == yandexSku;
+          marketplaceSetting.identifier === yandexSku;
 
         if (!skuAlreadySet) {
           marketplaceSetting.identifier = yandexSku;
