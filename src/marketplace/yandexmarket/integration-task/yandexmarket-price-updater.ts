@@ -161,6 +161,7 @@ export class YandexMarketPriceUpdater {
         marketplaceSettings: {
           $elemMatch: {
             marketplaceId: _id,
+            identifier: { $exists: true },
           },
         },
       })
