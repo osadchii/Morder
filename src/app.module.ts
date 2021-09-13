@@ -14,6 +14,8 @@ import { WildberriesModule } from './marketplace/wildberries/wildberries.module'
 import { AliexpressModule } from './marketplace/aliexpress/aliexpress.module';
 import { OrderModule } from './order/order.module';
 import { AuthModule } from './auth/auth.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -37,7 +39,10 @@ import { AuthModule } from './auth/auth.module';
     AliexpressModule,
     OrderModule,
     AuthModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'feeds'),
+      serveRoot: '/static/feeds/',
+    }),
   ],
 })
-export class AppModule {
-}
+export class AppModule {}
