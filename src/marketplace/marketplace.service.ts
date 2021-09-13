@@ -135,8 +135,8 @@ export abstract class MarketplaceService {
 
   private static PictureFunctionText(): string {
     return `function(image, erpCode, imageBase) {
-    if (!image){
-      return imageBase + erpCode;
+    if (!image) {
+      return undefined;
     }
     return imageBase + image;
   }`;
