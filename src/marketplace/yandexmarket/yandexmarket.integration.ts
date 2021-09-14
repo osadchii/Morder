@@ -81,6 +81,14 @@ export class YandexMarketIntegration {
       .catch((error) => {
         const { response } = error;
         const { status, statusText, data } = response;
+
+        if (data.errors && data.errors.length === 1) {
+          const message = data.errors[0].message as string;
+          if (message.indexOf('Unable to find mapping for marketSku') !== -1) {
+            this.logger.log(message);
+            return;
+          }
+        }
         this.logger.error(
           `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nUrl: ${url}\nData: ${JSON.stringify(
             data,
