@@ -1,6 +1,5 @@
 import { HttpService } from '@nestjs/axios';
 import { YandexMarketModel } from './yandexmarket.model';
-import { Logger } from '@nestjs/common';
 import { YandexMarketSkuPageModel } from './integration-model/yandexmarket-sku-page.model';
 import { YandexMarketSendPriceQueueModel } from './yandexmarket.sendprice.queue.model';
 import { YandexMarketSkuPageResponse } from './integration-model/yandexmarket-sku-page-response.model';
@@ -8,7 +7,6 @@ import { YandexMarketHiddenOffersPageModel } from './integration-model/yandexmar
 import { YandexMarketHiddenOffersPageResponse } from './integration-model/yandexmarket-hidden-offers-response.model';
 
 export class YandexMarketIntegration {
-  private readonly logger = new Logger(YandexMarketIntegration.name);
   private readonly baseUrl =
     'https://api.partner.market.yandex.ru/v2/campaigns';
 
@@ -71,30 +69,13 @@ export class YandexMarketIntegration {
       }),
     };
 
-    await this.httpService
+    return this.httpService
       .post(url, body, {
         headers: {
           ...this.authorizationHeader(),
         },
       })
-      .toPromise()
-      .catch((error) => {
-        const { response } = error;
-        const { status, statusText, data } = response;
-
-        if (data.errors && data.errors.length === 1) {
-          const message = data.errors[0].message as string;
-          if (message.indexOf('Unable to find mapping for marketSku') !== -1) {
-            this.logger.log(message);
-            return;
-          }
-        }
-        this.logger.error(
-          `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nUrl: ${url}\nData: ${JSON.stringify(
-            data,
-          )}`,
-        );
-      });
+      .toPromise();
   }
 
   async showProducts(skus: number[]) {
@@ -116,14 +97,7 @@ export class YandexMarketIntegration {
         },
         data: body,
       })
-      .toPromise()
-      .catch((error) => {
-        const { response } = error;
-        const { status, statusText } = response;
-        this.logger.error(
-          `Can't show yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}`,
-        );
-      });
+      .toPromise();
   }
 
   async updatePrices(prices: YandexMarketSendPriceQueueModel[]) {

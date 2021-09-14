@@ -99,7 +99,13 @@ export class YandexMarketHiddenProductsUpdater {
         `Need to show ${toShow.length} products for ${setting.name}`,
       );
       for (const yandexSku of toShow) {
-        await integration.showProducts([yandexSku]);
+        await integration.showProducts([yandexSku]).catch((error) => {
+          const { response } = error;
+          const { status, statusText } = response;
+          this.logger.error(
+            `Can't show yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}`,
+          );
+        });
       }
     }
 
@@ -108,7 +114,25 @@ export class YandexMarketHiddenProductsUpdater {
         `Need to hide ${toHide.length} products for ${setting.name}`,
       );
       for (const yandexSku of toHide) {
-        await integration.hideProducts([yandexSku]);
+        await integration.hideProducts([yandexSku]).catch((error) => {
+          const { response } = error;
+          const { status, statusText, data } = response;
+
+          if (data.errors && data.errors.length === 1) {
+            const message = data.errors[0].message as string;
+            if (
+              message.indexOf('Unable to find mapping for marketSku') !== -1
+            ) {
+              this.logger.log(message);
+              return;
+            }
+          }
+          this.logger.error(
+            `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nData: ${JSON.stringify(
+              data,
+            )}`,
+          );
+        });
       }
     }
   }
