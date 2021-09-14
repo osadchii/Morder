@@ -145,7 +145,7 @@ export class SberMegaMarketFeedBuilder {
       available = false;
     }
 
-    if (nullifyProductStocks || nullifyStocks) {
+    if (nullifyProductStocks || nullifyStocks || !product.stock) {
       product.stock = 0;
     }
 
