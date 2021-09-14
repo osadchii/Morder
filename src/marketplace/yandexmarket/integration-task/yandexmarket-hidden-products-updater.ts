@@ -47,14 +47,21 @@ export class YandexMarketHiddenProductsUpdater {
     try {
       currentlyHidden = await integration.getYandexMarketHiddenProducts();
     } catch (error) {
-      const { response } = error;
-      const { status, statusText, data } = response;
-      this.logger.error(
-        `Can't get hidden products from yandex.market.
+      if (error.hasOwnProperty('response')) {
+        const { response } = error;
+        const { status, statusText, data } = response;
+        this.logger.error(
+          `Can't get hidden products from yandex.market.
         \nStatus: ${status}
         \nStatus text: ${statusText}
         \nData: ${JSON.stringify(data)}`,
-      );
+        );
+      } else {
+        this.logger.error(
+          `Can't get hidden products from yandex.market.
+        \nError: ${error.toString()}`,
+        );
+      }
       return;
     }
 
@@ -76,18 +83,17 @@ export class YandexMarketHiddenProductsUpdater {
       }
     }
 
-    this.logger.log(
-      `Need to hide ${toHide.length} products for ${setting.name}`,
-    );
-    this.logger.log(
-      `Need to show ${toShow.length} products for ${setting.name}`,
-    );
-
     if (toShow.length > 0) {
+      this.logger.log(
+        `Need to show ${toShow.length} products for ${setting.name}`,
+      );
       await integration.showProducts(toShow.slice(0, this.portionSize));
     }
 
     if (toHide.length > 0) {
+      this.logger.log(
+        `Need to hide ${toHide.length} products for ${setting.name}`,
+      );
       await integration.hideProducts(toHide.slice(0, this.portionSize));
     }
   }
