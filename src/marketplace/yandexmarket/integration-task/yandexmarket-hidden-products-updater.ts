@@ -106,7 +106,9 @@ export class YandexMarketHiddenProductsUpdater {
       this.logger.log(
         `Need to hide ${toHide.length} products for ${setting.name}`,
       );
-      await integration.hideProducts(toHide.slice(0, this.portionSize));
+      for (const yandexSku of toHide) {
+        await integration.hideProducts([yandexSku]);
+      }
     }
   }
 
