@@ -75,10 +75,16 @@ export class YandexMarketHiddenProductsUpdater {
       );
 
       if (hidden && available) {
+        if (toShow.find((element) => element === yandexMarketSku)) {
+          continue;
+        }
         toShow.push(yandexMarketSku);
       }
 
       if (!hidden && !available) {
+        if (toHide.find((element) => element === yandexMarketSku)) {
+          continue;
+        }
         toHide.push(yandexMarketSku);
       }
     }

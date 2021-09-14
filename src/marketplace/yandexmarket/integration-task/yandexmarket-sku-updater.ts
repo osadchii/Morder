@@ -108,7 +108,11 @@ export class YandexMarketSkuUpdater {
           marketplaceSetting.identifier === yandexSku;
 
         if (!skuAlreadySet) {
-          marketplaceSetting.identifier = yandexSku;
+          if (yandexSku) {
+            marketplaceSetting.identifier = yandexSku;
+          } else {
+            marketplaceSetting.identifier = undefined;
+          }
           needSave = true;
         } else {
           hasSet = true;
