@@ -25,7 +25,12 @@ export abstract class MarketplaceService {
     await ensureDir(feedPath);
 
     const xmlBuilder = require('xmlbuilder');
-    const xml = xmlBuilder.create(feed).end({ pretty: true });
+    const xml = xmlBuilder
+      .create(feed, {
+        version: '1.0',
+        encoding: 'UTF-8',
+      })
+      .end({ pretty: true });
 
     return writeFile(feedFullName, xml);
   }
