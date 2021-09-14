@@ -9,12 +9,10 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-
   constructor(
     @InjectModel(UserModel) private readonly userModel: ModelType<UserModel>,
     private readonly jwtService: JwtService,
-  ) {
-  }
+  ) {}
 
   async createUser(dto: UserDto) {
     const salt = await genSalt(10);
@@ -26,9 +24,11 @@ export class AuthService {
   }
 
   async findUser(email: string) {
-    return this.userModel.findOne({
-      email,
-    }).exec();
+    return this.userModel
+      .findOne({
+        email: email.toLocaleLowerCase(),
+      })
+      .exec();
   }
 
   async validateUser(email: string, password: string) {
@@ -49,6 +49,5 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
-
   }
 }
