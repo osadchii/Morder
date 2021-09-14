@@ -65,7 +65,7 @@ export class YandexMarketIntegrationService extends MarketplaceService {
     await updater.sendQueuedPrices();
   }
 
-  @Interval(60000)
+  @Interval(600000)
   async updateHiddenProducts() {
     const updater = new YandexMarketHiddenProductsUpdater(
       this.marketplaceModel,

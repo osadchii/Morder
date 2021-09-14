@@ -187,6 +187,15 @@ export class YandexMarketHiddenProductsUpdater {
         available: true,
       };
 
+      // If set nullify stocks products always not available
+      if (setting.nullifyStocks) {
+        result.push({
+          ...resultItem,
+          available: false,
+        });
+        return;
+      }
+
       // Deleted products always not available
       if (item.isDeleted) {
         result.push({
