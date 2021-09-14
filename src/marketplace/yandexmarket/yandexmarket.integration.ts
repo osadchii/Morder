@@ -80,10 +80,10 @@ export class YandexMarketIntegration {
       .toPromise()
       .catch((error) => {
         const { response } = error;
-        const { status, statusText } = response;
+        const { status, statusText, data } = response;
         this.logger.error(
-          `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nUrl: ${url}\nBody: ${JSON.stringify(
-            body,
+          `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nUrl: ${url}\nData: ${JSON.stringify(
+            data,
           )}`,
         );
       });
