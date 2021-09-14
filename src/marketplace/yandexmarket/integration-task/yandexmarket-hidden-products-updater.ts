@@ -9,7 +9,6 @@ import { YandexMarketIntegration } from '../yandexmarket.integration';
 
 export class YandexMarketHiddenProductsUpdater {
   private readonly logger = new Logger(YandexMarketHiddenProductsUpdater.name);
-  private readonly portionSize = 200;
 
   constructor(
     private readonly marketplaceModel: ModelType<YandexMarketModel>,
@@ -99,7 +98,9 @@ export class YandexMarketHiddenProductsUpdater {
       this.logger.log(
         `Need to show ${toShow.length} products for ${setting.name}`,
       );
-      await integration.showProducts(toShow.slice(0, this.portionSize));
+      for (const yandexSku of toShow) {
+        await integration.showProducts([yandexSku]);
+      }
     }
 
     if (toHide.length > 0) {
