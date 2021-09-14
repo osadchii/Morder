@@ -65,8 +65,8 @@ export class YandexMarketHiddenProductsUpdater {
       return;
     }
 
-    const toHide = [];
-    const toShow = [];
+    const toHide: number[] = [];
+    const toShow: number[] = [];
 
     for (const productAvailability of productsAvailability) {
       const { articul, yandexMarketSku, available } = productAvailability;
@@ -75,14 +75,20 @@ export class YandexMarketHiddenProductsUpdater {
       );
 
       if (hidden && available) {
-        if (toShow.find((element) => element === yandexMarketSku)) {
+        const alreadyInArray = toShow.find(
+          (element) => element === yandexMarketSku,
+        );
+        if (alreadyInArray) {
           continue;
         }
         toShow.push(yandexMarketSku);
       }
 
       if (!hidden && !available) {
-        if (toHide.find((element) => element === yandexMarketSku)) {
+        const alreadyInArray = toHide.find(
+          (element) => element === yandexMarketSku,
+        );
+        if (alreadyInArray) {
           continue;
         }
         toHide.push(yandexMarketSku);
