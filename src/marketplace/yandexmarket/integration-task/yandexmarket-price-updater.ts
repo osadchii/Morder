@@ -70,6 +70,7 @@ export class YandexMarketPriceUpdater {
       let showErrors = false;
 
       for (const { message } of errors) {
+        this.logger.log(message);
         if (message.match(unableToFindMappingRegExp)) {
           const matches = message.match(numberRegexp);
           if (matches.length > 0) {
