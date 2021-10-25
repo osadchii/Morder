@@ -70,14 +70,12 @@ export class YandexMarketPriceUpdater {
       let showErrors = false;
 
       for (const { message } of errors) {
-        if (message instanceof String) {
-          if (message.match(unableToFindMappingRegExp)) {
-            const matches = message.match(numberRegexp);
-            if (matches.length > 0) {
-              const sku = matches[0];
-              this.logger.error(`Cant find mapping: ${sku}`);
-              continue;
-            }
+        if (message.match(unableToFindMappingRegExp)) {
+          const matches = message.match(numberRegexp);
+          if (matches.length > 0) {
+            const sku = matches[0];
+            this.logger.error(`Cant find mapping: ${sku}`);
+            continue;
           }
         }
         showErrors = true;
