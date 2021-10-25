@@ -62,11 +62,34 @@ export class YandexMarketPriceUpdater {
     } catch (error) {
       const { response } = error;
       const { status, statusText, data } = response;
-      this.logger.error(
-        `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}.\nData: ${JSON.stringify(
-          data,
-        )}`,
-      );
+      const { errors } = data;
+
+      const unableToFindMappingRegExp = 'Unable to find mapping for marketSku:';
+      const numberRegexp = '[0-9]+';
+
+      let showErrors = false;
+
+      for (const { message } of errors) {
+        if (message instanceof String) {
+          if (message.match(unableToFindMappingRegExp)) {
+            const matches = message.match(numberRegexp);
+            if (matches.length > 0) {
+              const sku = matches[0];
+              this.logger.error(`Cant find mapping: ${sku}`);
+              continue;
+            }
+          }
+        }
+        showErrors = true;
+      }
+
+      if (showErrors) {
+        this.logger.error(
+          `Can't send prices to yandex.market.\nStatus: ${status}\nStatus text: ${statusText}.\nData: ${JSON.stringify(
+            data,
+          )}`,
+        );
+      }
     }
   }
 
