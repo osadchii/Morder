@@ -7,6 +7,7 @@ import { YandexMarketSendPriceQueueModel } from '../yandexmarket.sendprice.queue
 import { UpdatedPrice } from '../integration-model/yandexmarket-updated-price.model';
 import { MarketplaceService } from '../../marketplace.service';
 import { YandexMarketIntegration } from '../yandexmarket.integration';
+import { YandexMarketSkuUpdater } from './yandexmarket-sku-updater';
 
 export class YandexMarketPriceUpdater {
   private readonly logger = new Logger(YandexMarketPriceUpdater.name);
@@ -68,6 +69,7 @@ export class YandexMarketPriceUpdater {
       const numberRegexp = '[0-9]+';
 
       let showErrors = false;
+      let fixedSku = 0;
 
       for (const { message } of errors) {
         this.logger.log(message);
@@ -75,11 +77,16 @@ export class YandexMarketPriceUpdater {
           const matches = message.match(numberRegexp);
           if (matches.length > 0) {
             const sku = matches[0];
-            this.logger.error(`Cant find mapping: ${sku}`);
+            await this.fixNonFoundSku(setting, sku);
+            fixedSku++;
             continue;
           }
         }
         showErrors = true;
+      }
+
+      if (fixedSku) {
+        this.logger.warn(`Fixed ${fixedSku} market skus`);
       }
 
       if (showErrors) {
@@ -90,6 +97,29 @@ export class YandexMarketPriceUpdater {
         );
       }
     }
+  }
+
+  private async fixNonFoundSku(setting: YandexMarketModel, sku: string) {
+    const updater = new YandexMarketSkuUpdater(
+      this.marketplaceModel,
+      this.productModel,
+      this.httpService,
+    );
+
+    await updater.resetYandexMarketSku(setting, sku);
+    await this.deletePriceFromSendQueueBySku(setting, sku);
+  }
+
+  private async deletePriceFromSendQueueBySku(
+    setting: YandexMarketModel,
+    sku: string,
+  ) {
+    return this.sendPriceQueue
+      .findOneAndDelete({
+        marketplaceId: setting._id,
+        marketSku: Number.parseInt(sku),
+      })
+      .exec();
   }
 
   private async deletePricesFromSendQueue(

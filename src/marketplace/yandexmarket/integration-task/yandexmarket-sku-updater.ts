@@ -25,6 +25,84 @@ export class YandexMarketSkuUpdater {
     }
   }
 
+  async resetYandexMarketSku(setting: YandexMarketModel, sku: string) {
+    const products = await this.productModel
+      .find({
+        marketplaceSettings: {
+          $elemMatch: {
+            marketplaceId: setting._id,
+            identifier: sku,
+          },
+        },
+      })
+      .exec();
+
+    for (const product of products) {
+      await this.setYandexMarketSku(product, setting);
+    }
+  }
+
+  async setYandexMarketSku(
+    product: ProductModel,
+    setting: YandexMarketModel,
+    yandexSku?: string,
+  ): Promise<boolean> {
+    let hasSet = false;
+    let needSave = false;
+
+    if (!product.marketplaceSettings) {
+      product.marketplaceSettings = [];
+    }
+
+    for (const marketplaceSetting of product.marketplaceSettings) {
+      const isDesired = marketplaceSetting.marketplaceId.equals(setting._id);
+
+      if (isDesired) {
+        const skuAlreadySet =
+          marketplaceSetting.identifier &&
+          marketplaceSetting.identifier === yandexSku;
+
+        if (!skuAlreadySet) {
+          if (yandexSku) {
+            marketplaceSetting.identifier = yandexSku;
+          } else {
+            marketplaceSetting.identifier = undefined;
+          }
+          needSave = true;
+        } else {
+          hasSet = true;
+        }
+      }
+    }
+
+    if (!hasSet && yandexSku) {
+      product.marketplaceSettings.push({
+        marketplaceId: setting._id,
+        ignoreRestrictions: false,
+        nullifyStock: false,
+        identifier: yandexSku,
+      });
+
+      needSave = true;
+    }
+
+    if (needSave) {
+      await this.productModel
+        .findByIdAndUpdate(
+          product._id,
+          {
+            marketplaceSettings: product.marketplaceSettings,
+          },
+          {
+            useFindAndModify: false,
+          },
+        )
+        .exec();
+    }
+
+    return needSave;
+  }
+
   private async updateYandexMarketSkusBySetting(setting: YandexMarketModel) {
     await this.setLastUpdateMarketSkus(setting);
 
@@ -85,67 +163,6 @@ export class YandexMarketSkuUpdater {
     }
 
     this.logger.log(`Updated ${updated} SKUs in products for ${setting.name}`);
-  }
-
-  private async setYandexMarketSku(
-    product: ProductModel,
-    setting: YandexMarketModel,
-    yandexSku?: string,
-  ): Promise<boolean> {
-    let hasSet = false;
-    let needSave = false;
-
-    if (!product.marketplaceSettings) {
-      product.marketplaceSettings = [];
-    }
-
-    for (const marketplaceSetting of product.marketplaceSettings) {
-      const isDesired = marketplaceSetting.marketplaceId.equals(setting._id);
-
-      if (isDesired) {
-        const skuAlreadySet =
-          marketplaceSetting.identifier &&
-          marketplaceSetting.identifier === yandexSku;
-
-        if (!skuAlreadySet) {
-          if (yandexSku) {
-            marketplaceSetting.identifier = yandexSku;
-          } else {
-            marketplaceSetting.identifier = undefined;
-          }
-          needSave = true;
-        } else {
-          hasSet = true;
-        }
-      }
-    }
-
-    if (!hasSet && yandexSku) {
-      product.marketplaceSettings.push({
-        marketplaceId: setting._id,
-        ignoreRestrictions: false,
-        nullifyStock: false,
-        identifier: yandexSku,
-      });
-
-      needSave = true;
-    }
-
-    if (needSave) {
-      await this.productModel
-        .findByIdAndUpdate(
-          product._id,
-          {
-            marketplaceSettings: product.marketplaceSettings,
-          },
-          {
-            useFindAndModify: false,
-          },
-        )
-        .exec();
-    }
-
-    return needSave;
   }
 
   private async productToUpdateSkus(
