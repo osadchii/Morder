@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { CategoryModel } from '../../../category/category.model';
 import { MarketplaceService } from '../../marketplace.service';
 import { YandexMarketIntegration } from '../yandexmarket.integration';
+import { YandexMarketSkuUpdater } from './yandexmarket-sku-updater';
 
 export class YandexMarketHiddenProductsUpdater {
   private readonly logger = new Logger(YandexMarketHiddenProductsUpdater.name);
@@ -114,25 +115,52 @@ export class YandexMarketHiddenProductsUpdater {
         `Need to hide ${toHide.length} products for ${setting.name}`,
       );
       for (const yandexSku of toHide) {
-        await integration.hideProducts([yandexSku]).catch((error) => {
+        try {
+          await integration.hideProducts([yandexSku]);
+        } catch (error) {
           const { response } = error;
           const { status, statusText, data } = response;
+          const { errors } = data;
 
-          if (data.errors && data.errors.length === 1) {
-            const message = data.errors[0].message as string;
-            if (
-              message.indexOf('Unable to find mapping for marketSku') !== -1
-            ) {
-              this.logger.log(message);
-              return;
+          const unableToFindMappingRegExp =
+            'Unable to find mapping for marketSku:';
+          const numberRegExp = '[0-9]+';
+
+          let showErrors = false;
+          let fixedSku = 0;
+
+          for (const { message } of errors) {
+            this.logger.log(message);
+            if (message.match(unableToFindMappingRegExp)) {
+              const matches = message.match(numberRegExp);
+              if (matches.length > 0) {
+                const sku = matches[0];
+                const updater = new YandexMarketSkuUpdater(
+                  this.marketplaceModel,
+                  this.productModel,
+                  this.httpService,
+                );
+
+                await updater.resetYandexMarketSku(setting, sku);
+                fixedSku++;
+                continue;
+              }
             }
+            showErrors = true;
           }
-          this.logger.error(
-            `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nData: ${JSON.stringify(
-              data,
-            )}`,
-          );
-        });
+
+          if (fixedSku) {
+            this.logger.warn(`Fixed ${fixedSku} market skus`);
+          }
+
+          if (showErrors) {
+            this.logger.error(
+              `Can't hide yandex.market skus.\nStatus: ${status}\nStatus text: ${statusText}\nData: ${JSON.stringify(
+                data,
+              )}`,
+            );
+          }
+        }
       }
     }
   }

@@ -66,7 +66,7 @@ export class YandexMarketPriceUpdater {
       const { errors } = data;
 
       const unableToFindMappingRegExp = 'Unable to find mapping for marketSku:';
-      const numberRegexp = '[0-9]+';
+      const numberRegExp = '[0-9]+';
 
       let showErrors = false;
       let fixedSku = 0;
@@ -74,7 +74,7 @@ export class YandexMarketPriceUpdater {
       for (const { message } of errors) {
         this.logger.log(message);
         if (message.match(unableToFindMappingRegExp)) {
-          const matches = message.match(numberRegexp);
+          const matches = message.match(numberRegExp);
           if (matches.length > 0) {
             const sku = matches[0];
             await this.fixNonFoundSku(setting, sku);
